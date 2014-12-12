@@ -10,15 +10,17 @@ public class Parser {
 
   private HashMap<String, Token> reservedWordTable = new HashMap<String, Token>();
   private SourceBuffer source = new SourceBuffer();
+  private SourceBuffer.SourcePointer srcPosition = new SourceBuffer.SourcePointer();
+  private SymbolTable symbols = new SymbolTable();
 
   public Parser(Scanner file) {
     loadReservedWordTable();
 
     while (file.hasNextLine()) {
       // Read source into buffer
-      // Per project spec, only consider upto 72 characters per line.
+      // Per project spec, only consider upto 71 characters per line including \n
       String line = file.nextLine();
-      source.addLine(line.substring(0, Math.min(72, line.length())));
+      source.addLine(line.substring(0, Math.min(71, line.length())) + "\n");
     }
     file.close();
   }
@@ -53,16 +55,7 @@ public class Parser {
     return null;
   }
 
-  /**
-   * consumes whitespace
-   */
-  private void whitespaceMachine() {
-    while (source.hasNextCharacter()) {
-      if (isWhiteSpace(source.peekNextCharacter())) {
-        source.advanceNextCharacter(1);
-      }
-    }
-  }
+
 
   private boolean isWhiteSpace(char c) {
     if (c == ' ' || c == '\t' || c == '\n')
@@ -70,12 +63,83 @@ public class Parser {
     return false;
   }
 
-  private Token relopMachine() {
-    // TODO
-    return null;
+  private boolean isLetter(char c) {
+    if (c >= 'a' && c <= 'z')
+      return true;
+    if (c >= 'A' && c <= 'Z')
+      return true;
+    return false;
+  }
+
+  private boolean isDigit(char c) {
+    if (c >= '0' && c <= '9')
+      return true;
+    return false;
+  }
+
+  private boolean isEOF(char c) {
+    return (c == '.');
   }
 
   private Token idResMachine() {
+    SourceBuffer.SourcePointer backup = srcPosition.clone();
+
+    // first consume whitespace expected before id / reserved words
+    boolean hasConsumedWhitespace = false;
+    while (source.hasNextChar(srcPosition) && isWhiteSpace(source.readNextChar(srcPosition))) {
+      source.advanceNextChar(srcPosition);
+      hasConsumedWhitespace = true;
+    }
+
+    if (hasConsumedWhitespace) {
+      String candidate = "";
+
+      // next consume one letter
+      if (source.hasNextChar(srcPosition) && isLetter(source.readNextChar(srcPosition))) {
+        candidate += source.readNextChar(srcPosition);
+        source.advanceNextChar(srcPosition);
+
+        // next consume any following letters or digits
+        while (source.hasNextChar(srcPosition)
+            && (isLetter(source.readNextChar(srcPosition)) || isDigit(source
+                .readNextChar(srcPosition)))) {
+          candidate += source.readNextChar(srcPosition);
+          source.advanceNextChar(srcPosition);
+        }
+
+        // if candidate is followed by whitespace or EOF
+        if (source.hasNextChar(srcPosition)
+            && (isWhiteSpace(source.readNextChar(srcPosition)) || isEOF(source
+                .readNextChar(srcPosition)))) {
+
+          // check reserved word table
+          if (reservedWordTable.containsKey(candidate)) {
+            return reservedWordTable.get(candidate);
+          } else { // else an id to check add to symbol table
+            Token t = new Token(new TokenType(TokenType.OtherTypes.ID), candidate);
+            if (!symbols.table.containsKey(candidate))
+              symbols.table.put(candidate, t);
+            return t;
+          }
+        }
+      }
+    }
+
+    // if no token matched, revert source pointer and return null
+    srcPosition = backup;
+    return null;
+  }
+
+  /**
+   * consumes whitespace
+   */
+  private void whitespaceMachine() {
+    while (source.hasNextChar(srcPosition) && isWhiteSpace(source.readNextChar(srcPosition))) {
+      source.advanceNextChar(srcPosition);
+    }
+  }
+
+  private Token relopMachine() {
     // TODO
     return null;
   }
@@ -107,7 +171,7 @@ public class Parser {
 
   public void computeProjectZero() {
     for (int i = 0; i < source.getNumLines(); i++) {
-      out.println(i + ". " + source.getLine(i));
+      out.print(i + ". " + source.getLine(i));
     }
   }
 

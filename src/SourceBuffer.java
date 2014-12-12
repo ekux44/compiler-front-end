@@ -1,53 +1,63 @@
 import java.util.ArrayList;
 
-
+/**
+ * @author kuxhausen Stores source code with the requirements of: preserving line numbers, providing
+ *         access by line number, and facilitating per-character linear traversal with
+ *         SourcePointers.
+ */
 public class SourceBuffer {
   private ArrayList<String> sourceBuffer = new ArrayList<String>();
-  
-  private int positionInSourceBuffer = 0;
-  private int positionInSourceBufferLine = 0;
 
-  public SourceBuffer(){
-  }
-  
-  public void addLine(String line){
+  public SourceBuffer() {}
+
+  public void addLine(String line) {
     sourceBuffer.add(line);
   }
-  
-  public int getNumLines(){
+
+  public int getNumLines() {
     return sourceBuffer.size();
   }
-  
-  public String getLine(int number){
+
+  public String getLine(int number) {
     return sourceBuffer.get(number);
   }
-  
-  public boolean hasNextCharacter(){
-    if(positionInSourceBuffer < sourceBuffer.size()
-        && positionInSourceBufferLine < sourceBuffer.get(positionInSourceBuffer).length()){
-    return true;
-    }
-    else
+
+  public boolean hasNextChar(SourcePointer position) {
+    if (position.lineNum < sourceBuffer.size()
+        && position.charInLineNum < sourceBuffer.get(position.lineNum).length()) {
+      return true;
+    } else
       return false;
   }
-  
+
   /**
    * guard with hasNextCharacter() to prevent out of bounds issues
    */
-  public char peekNextCharacter(){
-      return sourceBuffer.get(positionInSourceBuffer).charAt(positionInSourceBufferLine);
+  public char readNextChar(SourcePointer position) {
+    return sourceBuffer.get(position.lineNum).charAt(position.charInLineNum);
   }
-  
-  public void advanceNextCharacter(int offset){
-    for(int i=0; i< offset; i++){
-      if(hasNextCharacter()){
-        if(positionInSourceBufferLine < sourceBuffer.get(positionInSourceBuffer).length()){
-          positionInSourceBufferLine++;
-        } else {
-          positionInSourceBuffer++;
-          positionInSourceBufferLine=0;
-        }
+
+  public void advanceNextChar(SourcePointer position) {
+    if (hasNextChar(position)) {
+      if (position.charInLineNum < sourceBuffer.get(position.lineNum).length()) {
+        position.charInLineNum++;
+      } else {
+        position.lineNum++;
+        position.charInLineNum = 0;
       }
+    }
+  }
+
+  public static class SourcePointer implements Cloneable {
+    int lineNum;
+    int charInLineNum;
+
+    @Override
+    public SourcePointer clone() {
+      SourcePointer copy = new SourcePointer();
+      copy.lineNum = lineNum;
+      copy.charInLineNum = charInLineNum;
+      return copy;
     }
   }
 }

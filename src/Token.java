@@ -1,9 +1,9 @@
 public class Token {
 
   public TokenType type;
-  public int attribute;
+  public Object attribute;
 
-  public Token(TokenType t, int attr) {
+  public Token(TokenType t, Object attr) {
     type = t;
     attribute = attr;
   }
