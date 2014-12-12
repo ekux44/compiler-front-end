@@ -1,4 +1,5 @@
 program	PROGRAM	0
+.	EOF	0
 var	VAR	0
 array	ARRAY	0
 of	OF	0
