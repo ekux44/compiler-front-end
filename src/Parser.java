@@ -8,9 +8,8 @@ import static java.lang.System.out;
 
 public class Parser {
 
-  ArrayList<String> sourceBuffer = new ArrayList<String>();
-  HashMap<String, Token> reservedWordTable = new HashMap<String, Token>();
-
+  private HashMap<String, Token> reservedWordTable = new HashMap<String, Token>();
+  private SourceBuffer source = new SourceBuffer();
 
   public Parser(Scanner file) {
     loadReservedWordTable();
@@ -19,7 +18,7 @@ public class Parser {
       // Read source into buffer
       // Per project spec, only consider upto 72 characters per line.
       String line = file.nextLine();
-      sourceBuffer.add(line.substring(0, Math.min(72, line.length())));
+      source.addLine(line.substring(0, Math.min(72, line.length())));
     }
     file.close();
   }
@@ -47,9 +46,68 @@ public class Parser {
     }
   }
 
+  public Token getNextToken() {
+    Token result = null;
+
+
+    return null;
+  }
+
+  /**
+   * consumes whitespace
+   */
+  private void whitespaceMachine() {
+    while (source.hasNextCharacter()) {
+      if (isWhiteSpace(source.peekNextCharacter())) {
+        source.advanceNextCharacter(1);
+      }
+    }
+  }
+
+  private boolean isWhiteSpace(char c) {
+    if (c == ' ' || c == '\t' || c == '\n')
+      return true;
+    return false;
+  }
+
+  private Token relopMachine() {
+    // TODO
+    return null;
+  }
+
+  private Token idResMachine() {
+    // TODO
+    return null;
+  }
+
+  private Token eofMachine() {
+    // TODO
+    return null;
+  }
+
+  private Token intMachine() {
+    // TODO
+    return null;
+  }
+
+  private Token longMachine() {
+    // TODO
+    return null;
+  }
+
+  private Token longrealMachine() {
+    // TODO
+    return null;
+  }
+
+  private Token catchallMachine() {
+    // TODO
+    return null;
+  }
+
   public void computeProjectZero() {
-    for (int i = 0; i < sourceBuffer.size(); i++) {
-      out.println(i + ". " + sourceBuffer.get(i));
+    for (int i = 0; i < source.getNumLines(); i++) {
+      out.println(i + ". " + source.getLine(i));
     }
   }
 
@@ -61,5 +119,4 @@ public class Parser {
       return null;
     }
   }
-
 }
