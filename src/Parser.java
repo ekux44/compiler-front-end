@@ -56,12 +56,15 @@ public class Parser {
   public Token getNextToken() {
     Token result = null;
 
-    result = idResMachine();
+    result = reservedWordsMachine();
     if (result == null) {
       whitespaceMachine();
       if (!source.hasNextChar(srcPosition)) // check there is something left after removing
                                             // whitespace
         return result;
+      result = idMachine();
+    }
+    if (result == null) {
       result = catchAllMachine();
     }
 
@@ -96,7 +99,7 @@ public class Parser {
     return (c == '.');
   }
 
-  private Token idResMachine() {
+  private Token reservedWordsMachine() {
     SourceBuffer.SourcePointer backup = srcPosition.clone();
 
     // first consume whitespace expected before id / reserved words
@@ -134,16 +137,41 @@ public class Parser {
           // check reserved word table
           if (reservedWordTable.containsKey(candidate)) {
             return reservedWordTable.get(candidate);
-          } else { // else an id to check add to symbol table
-            Token t =
-                new Token(new TokenType(TokenType.OtherTypes.ID), candidate, candidate,
-                    srcPosition.lineNum);
-            if (!symbols.table.containsKey(candidate))
-              symbols.table.put(candidate, t);
-            return t;
           }
         }
       }
+    }
+
+    // if no token matched, revert source pointer and return null
+    srcPosition = backup;
+    return null;
+  }
+
+
+  private Token idMachine() {
+    SourceBuffer.SourcePointer backup = srcPosition.clone();
+    String candidate = "";
+
+    // consume one letter
+    if (source.hasNextChar(srcPosition) && isLetter(source.readNextChar(srcPosition))) {
+      candidate += source.readNextChar(srcPosition);
+      source.advanceNextChar(srcPosition);
+
+      // next consume any following letters or digits
+      while (source.hasNextChar(srcPosition)
+          && (isLetter(source.readNextChar(srcPosition)) || isDigit(source
+              .readNextChar(srcPosition)))) {
+        candidate += source.readNextChar(srcPosition);
+        source.advanceNextChar(srcPosition);
+      }
+
+      // Check add id to symbol table
+      Token t =
+          new Token(new TokenType(TokenType.OtherTypes.ID), candidate, candidate,
+              srcPosition.lineNum);
+      if (!symbols.table.containsKey(candidate))
+        symbols.table.put(candidate, t);
+      return t;
     }
 
     // if no token matched, revert source pointer and return null
@@ -189,33 +217,69 @@ public class Parser {
     // TODO
 
     String lex = "" + source.readNextChar(srcPosition);
-    
-    
+
+
     Token result = null;
-    switch(lex){
-      case "(": result = new Token(new TokenType(TokenType.OtherTypes.OPENPAREN), lex, lex, srcPosition.lineNum); break;
-      case ")": result = new Token(new TokenType(TokenType.OtherTypes.CLOSEPAREN), lex, lex, srcPosition.lineNum); break;
-      case ";": result = new Token(new TokenType(TokenType.OtherTypes.SEMICOLON), lex, lex, srcPosition.lineNum); break;
-      case ",": result = new Token(new TokenType(TokenType.OtherTypes.COMMA), lex, lex, srcPosition.lineNum); break;
-      
-      case "[": result = new Token(new TokenType(TokenType.OtherTypes.OPENBRACKET), lex, lex, srcPosition.lineNum); break;
-      case "]": result = new Token(new TokenType(TokenType.OtherTypes.CLOSEBRACKET), lex, lex, srcPosition.lineNum); break;
-      
-      case "+": result = new Token(new TokenType(TokenType.OtherTypes.ADDOP), TokenType.AddopAttributes.PLUS, lex, srcPosition.lineNum); break;
-      case "-": result = new Token(new TokenType(TokenType.OtherTypes.ADDOP), TokenType.AddopAttributes.MINUS, lex, srcPosition.lineNum); break;
-      case "*": result = new Token(new TokenType(TokenType.OtherTypes.MULOP), TokenType.MulopAttributes.TIMES, lex, srcPosition.lineNum); break;
-      case "/": result = new Token(new TokenType(TokenType.OtherTypes.MULOP), TokenType.MulopAttributes.SLASH, lex, srcPosition.lineNum); break;
+    switch (lex) {
+      case "(":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.OPENPAREN), lex, lex, srcPosition.lineNum);
+        break;
+      case ")":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.CLOSEPAREN), lex, lex, srcPosition.lineNum);
+        break;
+      case ";":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.SEMICOLON), lex, lex, srcPosition.lineNum);
+        break;
+      case ",":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.COMMA), lex, lex, srcPosition.lineNum);
+        break;
+
+      case "[":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.OPENBRACKET), lex, lex,
+                srcPosition.lineNum);
+        break;
+      case "]":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.CLOSEBRACKET), lex, lex,
+                srcPosition.lineNum);
+        break;
+
+      case "+":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.ADDOP), TokenType.AddopAttributes.PLUS,
+                lex, srcPosition.lineNum);
+        break;
+      case "-":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.ADDOP), TokenType.AddopAttributes.MINUS,
+                lex, srcPosition.lineNum);
+        break;
+      case "*":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.MULOP), TokenType.MulopAttributes.TIMES,
+                lex, srcPosition.lineNum);
+        break;
+      case "/":
+        result =
+            new Token(new TokenType(TokenType.OtherTypes.MULOP), TokenType.MulopAttributes.SLASH,
+                lex, srcPosition.lineNum);
+        break;
     }
-    
-    if(result!=null){
+
+    if (result != null) {
       source.advanceNextChar(srcPosition);
       return result;
     }
-    
-    
-    
+
+
+
     source.advanceNextChar(srcPosition);
-    
+
     Token err =
         new Token(new TokenType(TokenType.OtherTypes.LEXERR), "Unrecog Symbol", lex,
             srcPosition.lineNum);
