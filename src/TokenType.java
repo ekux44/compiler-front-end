@@ -17,7 +17,7 @@ public class TokenType {
   }
 
   enum OtherTypes {
-    ID, EOF, DOTDOT, NUM, RELOP, ADDOP, MULOP
+    ID, EOF, DOTDOT, NUM, RELOP, ADDOP, MULOP, LEXERR
   }
 
   enum RelopAttributes {

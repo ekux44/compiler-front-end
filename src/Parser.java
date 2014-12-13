@@ -12,6 +12,7 @@ public class Parser {
   private SourceBuffer source = new SourceBuffer();
   private SourceBuffer.SourcePointer srcPosition = new SourceBuffer.SourcePointer();
   private SymbolTable symbols = new SymbolTable();
+  private ArrayList<Token> tokens = new ArrayList<Token>();
 
   public Parser(Scanner file) {
     loadReservedWordTable();
@@ -27,32 +28,46 @@ public class Parser {
 
   private void loadReservedWordTable() {
     try {
-      Scanner wordFile = new Scanner(new BufferedReader(new FileReader("reservedwords.txt")));
+      Scanner wordFile = new Scanner(new BufferedReader(new FileReader("input/reservedwords.txt")));
 
-      while (wordFile.hasNextLine()) {
+      while (wordFile.hasNextLine() && wordFile.hasNext()) {
         String lexeme = wordFile.next();
         String tokenType = wordFile.next();
         int attribute = wordFile.nextInt();
 
         for (TokenType.ReservedWordTypes tt : TokenType.ReservedWordTypes.values()) {
           if (lexeme.equals(tt.toString())) {
-            reservedWordTable.put(lexeme, new Token(new TokenType(tt), attribute));
+            reservedWordTable.put(lexeme, new Token(new TokenType(tt), attribute, lexeme,
+                srcPosition.lineNum));
           }
         }
       }
 
-
-
+      wordFile.close();
     } catch (FileNotFoundException e) {
       out.println("reservedwords.txt not found");
     }
   }
 
+  public boolean hasNextToken() {
+    return source.hasNextChar(srcPosition);
+  }
+
   public Token getNextToken() {
     Token result = null;
 
+    result = idResMachine();
+    if (result == null) {
+      whitespaceMachine();
+      if (!source.hasNextChar(srcPosition)) // check there is something left after removing
+                                            // whitespace
+        return result;
+      result = catchAllMachine();
+    }
 
-    return null;
+    if (result != null)
+      tokens.add(result);
+    return result;
   }
 
 
@@ -86,6 +101,10 @@ public class Parser {
 
     // first consume whitespace expected before id / reserved words
     boolean hasConsumedWhitespace = false;
+    if (this.srcPosition.lineNum == 0 && srcPosition.charInLineNum == 0) {
+      hasConsumedWhitespace = true; // whitespace not needed before first char in source
+    }
+
     while (source.hasNextChar(srcPosition) && isWhiteSpace(source.readNextChar(srcPosition))) {
       source.advanceNextChar(srcPosition);
       hasConsumedWhitespace = true;
@@ -116,7 +135,9 @@ public class Parser {
           if (reservedWordTable.containsKey(candidate)) {
             return reservedWordTable.get(candidate);
           } else { // else an id to check add to symbol table
-            Token t = new Token(new TokenType(TokenType.OtherTypes.ID), candidate);
+            Token t =
+                new Token(new TokenType(TokenType.OtherTypes.ID), candidate, candidate,
+                    srcPosition.lineNum);
             if (!symbols.table.containsKey(candidate))
               symbols.table.put(candidate, t);
             return t;
@@ -164,9 +185,15 @@ public class Parser {
     return null;
   }
 
-  private Token catchallMachine() {
+  private Token catchAllMachine() {
     // TODO
-    return null;
+
+    String lex = "" + source.readNextChar(srcPosition);
+    source.advanceNextChar(srcPosition);
+    Token err =
+        new Token(new TokenType(TokenType.OtherTypes.LEXERR), "Unrecog Symbol", lex,
+            srcPosition.lineNum);
+    return err;
   }
 
   public void computeProjectZero() {
@@ -182,5 +209,36 @@ public class Parser {
       out.println("Source not found at " + filepath);
       return null;
     }
+  }
+
+  public void writeListingFile(String string) {
+    PrintWriter output = null;
+    try {
+      output = new PrintWriter(string);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    for (int i = 0; i < source.getNumLines(); i++) {
+      output.print(i + "   " + source.getLine(i));
+      // TODO add formatting and tokens
+    }
+    output.close();
+  }
+
+  public void writeTokenFile(String string) {
+    PrintWriter output = null;
+    try {
+      output = new PrintWriter(string);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    output.println(String.format("%1$-10s%2$-15s%3$-15s%4$-10s","Line No.","Lexeme","TOKEN-TYPE","ATTRIBUTE"));
+    for (Token t : tokens) {
+      output.println(String.format("%1$-10s%2$-15s%3$-15s%4$-10s", t.lineNum, t.lexeme, t.type.toString(), t.attribute));
+      // TODO add formatting and tokens
+    }
+    output.close();
   }
 }

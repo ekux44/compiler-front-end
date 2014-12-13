@@ -39,7 +39,7 @@ public class SourceBuffer {
 
   public void advanceNextChar(SourcePointer position) {
     if (hasNextChar(position)) {
-      if (position.charInLineNum < sourceBuffer.get(position.lineNum).length()) {
+      if (position.charInLineNum < sourceBuffer.get(position.lineNum).length() - 1) {
         position.charInLineNum++;
       } else {
         position.lineNum++;
