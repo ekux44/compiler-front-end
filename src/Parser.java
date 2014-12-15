@@ -35,9 +35,9 @@ public class Parser {
         String tokenType = wordFile.next();
         int attribute = wordFile.nextInt();
 
-        for (TokenType.ReservedWordTypes tt : TokenType.ReservedWordTypes.values()) {
+        for (Token.ResWordAttr tt : Token.ResWordAttr.values()) {
           if (lexeme.equals(tt.toString())) {
-            reservedWordTable.put(lexeme, new Token(new TokenType(tt), attribute, lexeme,
+            reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt, lexeme,
                 srcPosition.lineNum));
           }
         }
@@ -167,7 +167,7 @@ public class Parser {
 
       // Check add id to symbol table
       Token t =
-          new Token(new TokenType(TokenType.OtherTypes.ID), candidate, candidate,
+          new Token(Token.Type.ID, candidate, candidate,
               srcPosition.lineNum);
       if (!symbols.table.containsKey(candidate))
         symbols.table.put(candidate, t);
@@ -223,51 +223,45 @@ public class Parser {
     switch (lex) {
       case "(":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.OPENPAREN), lex, lex, srcPosition.lineNum);
+            new Token(Token.Type.OPENPAREN, lex, lex, srcPosition.lineNum);
         break;
       case ")":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.CLOSEPAREN), lex, lex, srcPosition.lineNum);
+            new Token(Token.Type.CLOSEPAREN, lex, lex, srcPosition.lineNum);
         break;
       case ";":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.SEMICOLON), lex, lex, srcPosition.lineNum);
+            new Token(Token.Type.SEMICOLON, lex, lex, srcPosition.lineNum);
         break;
       case ",":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.COMMA), lex, lex, srcPosition.lineNum);
+            new Token(Token.Type.COMMA, lex, lex, srcPosition.lineNum);
         break;
 
       case "[":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.OPENBRACKET), lex, lex,
-                srcPosition.lineNum);
+            new Token(Token.Type.OPENBRACKET, lex, lex, srcPosition.lineNum);
         break;
       case "]":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.CLOSEBRACKET), lex, lex,
-                srcPosition.lineNum);
+            new Token(Token.Type.CLOSEBRACKET, lex, lex, srcPosition.lineNum);
         break;
 
       case "+":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.ADDOP), TokenType.AddopAttributes.PLUS,
-                lex, srcPosition.lineNum);
+            new Token(Token.Type.ADDOP, Token.AddopAttr.PLUS, lex, srcPosition.lineNum);
         break;
       case "-":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.ADDOP), TokenType.AddopAttributes.MINUS,
-                lex, srcPosition.lineNum);
+            new Token(Token.Type.ADDOP, Token.AddopAttr.MINUS, lex, srcPosition.lineNum);
         break;
       case "*":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.MULOP), TokenType.MulopAttributes.TIMES,
-                lex, srcPosition.lineNum);
+            new Token(Token.Type.MULOP, Token.MulopAttr.TIMES, lex, srcPosition.lineNum);
         break;
       case "/":
         result =
-            new Token(new TokenType(TokenType.OtherTypes.MULOP), TokenType.MulopAttributes.SLASH,
-                lex, srcPosition.lineNum);
+            new Token(Token.Type.MULOP, Token.MulopAttr.SLASH, lex, srcPosition.lineNum);
         break;
     }
 
@@ -280,9 +274,7 @@ public class Parser {
 
     source.advanceNextChar(srcPosition);
 
-    Token err =
-        new Token(new TokenType(TokenType.OtherTypes.LEXERR), "Unrecog Symbol", lex,
-            srcPosition.lineNum);
+    Token err = new Token(Token.Type.LEXERR, "Unrecog Symbol", lex, srcPosition.lineNum);
     return err;
   }
 
@@ -324,12 +316,10 @@ public class Parser {
       e.printStackTrace();
     }
 
-    output.println(String.format("%1$-10s%2$-15s%3$-15s%4$-10s", "Line No.", "Lexeme",
-        "TOKEN-TYPE", "ATTRIBUTE"));
+    String formatting = "%-10s%-15s%-15s%-10s";
+    output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
-      output.println(String.format("%1$-10s%2$-15s%3$-15s%4$-10s", t.lineNum, t.lexeme,
-          t.type.toString(), t.attribute));
-      // TODO add formatting and tokens
+      output.println(String.format(formatting, t.lineNum, t.lexeme, t.type.toString(), t.attribute));
     }
     output.close();
   }
