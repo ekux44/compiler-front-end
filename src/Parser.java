@@ -68,7 +68,8 @@ public class Parser {
     }
     if (result == null) {
       result = longRealMachine();
-    } if (result == null) {
+    }
+    if (result == null) {
       result = realMachine();
     }
     if (result == null) {
@@ -76,9 +77,6 @@ public class Parser {
     }
     if (result == null) {
       result = relopMachine();
-    }
-    if (result == null) {
-      result = eofMachine();
     }
     if (result == null) {
       result = catchAllMachine();
@@ -146,7 +144,9 @@ public class Parser {
 
           // check reserved word table
           if (reservedWordTable.containsKey(candidate)) {
-            return reservedWordTable.get(candidate);
+            Token result = reservedWordTable.get(candidate).clone();
+            result.position = srcPos.clone();
+            return result;
           }
         }
       }
@@ -232,14 +232,6 @@ public class Parser {
 
     // if no token matched, revert source pointer and return null
     srcPos = backup;
-    return null;
-  }
-
-  private Token eofMachine() {
-    if (source.hasNext(srcPos) && isEOF(source.peek(srcPos))) {
-      source.advanceChar(srcPos);
-      return new Token(Token.Type.EOF, null, ".", srcPos);
-    }
     return null;
   }
 
@@ -373,52 +365,46 @@ public class Parser {
   }
 
   private Token catchAllMachine() {
-    // TODO
+    SourcePointer backup = srcPos.clone();
+    String lex = "" + source.advanceChar(srcPos);
 
-    String lex = "" + source.peek(srcPos);
-
-
-    Token result = null;
     switch (lex) {
       case "(":
-        result = new Token(Token.Type.OPENPAREN, lex, lex, srcPos);
-        break;
+        return new Token(Token.Type.OPENPAREN, null, lex, srcPos);
       case ")":
-        result = new Token(Token.Type.CLOSEPAREN, lex, lex, srcPos);
-        break;
+        return new Token(Token.Type.CLOSEPAREN, null, lex, srcPos);
       case ";":
-        result = new Token(Token.Type.SEMICOLON, lex, lex, srcPos);
-        break;
+        return new Token(Token.Type.SEMICOLON, null, lex, srcPos);
       case ",":
-        result = new Token(Token.Type.COMMA, lex, lex, srcPos);
-        break;
-
+        return new Token(Token.Type.COMMA, null, lex, srcPos);
       case "[":
-        result = new Token(Token.Type.OPENBRACKET, lex, lex, srcPos);
-        break;
+        return new Token(Token.Type.OPENBRACKET, null, lex, srcPos);
       case "]":
-        result = new Token(Token.Type.CLOSEBRACKET, lex, lex, srcPos);
-        break;
-
+        return new Token(Token.Type.CLOSEBRACKET, null, lex, srcPos);
       case "+":
-        result = new Token(Token.Type.ADDOP, Token.AddopAttr.PLUS, lex, srcPos);
-        break;
+        return new Token(Token.Type.ADDOP, Token.AddopAttr.PLUS.ordinal(), lex, srcPos);
       case "-":
-        result = new Token(Token.Type.ADDOP, Token.AddopAttr.MINUS, lex, srcPos);
-        break;
+        return new Token(Token.Type.ADDOP, Token.AddopAttr.MINUS.ordinal(), lex, srcPos);
       case "*":
-        result = new Token(Token.Type.MULOP, Token.MulopAttr.TIMES, lex, srcPos);
-        break;
+        return new Token(Token.Type.MULOP, Token.MulopAttr.TIMES.ordinal(), lex, srcPos);
       case "/":
-        result = new Token(Token.Type.MULOP, Token.MulopAttr.SLASH, lex, srcPos);
-        break;
+        return new Token(Token.Type.MULOP, Token.MulopAttr.SLASH.ordinal(), lex, srcPos);
     }
 
-    if (result != null) {
-      source.advanceChar(srcPos);
-      return result;
+    if (lex.equals(":")) {
+      if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
+        lex += source.advanceChar(srcPos);
+        return new Token(Token.Type.ASSIGNOP, null, lex, srcPos);
+      } else
+        return new Token(Token.Type.COLON, null, lex, srcPos);
+    } else if (lex.equals(".")) {
+      if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
+        lex += source.advanceChar(srcPos);
+        return new Token(Token.Type.DOTDOT, null, lex, srcPos);
+      } else {
+        return new Token(Token.Type.EOF, null, lex, srcPos);
+      }
     }
-
 
     source.advanceChar(srcPos);
 

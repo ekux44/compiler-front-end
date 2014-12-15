@@ -1,7 +1,7 @@
 /**
  * @author Eric Kuxhausen
  */
-public class Token {
+public class Token implements Cloneable {
 
   public Type type;
   public Object attribute;
@@ -12,15 +12,19 @@ public class Token {
     type = t;
     attribute = attr;
     lexeme = lex;
-    position = pos;
+    position = pos.clone();
+  }
+
+  public Token clone() {
+    return new Token(type, attribute, lexeme, position.clone());
   }
 
   public static enum Type {
-    RESWRD, ID, EOF, DOTDOT, NUM, RELOP, ADDOP, MULOP, LEXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, OPENBRACKET, CLOSEBRACKET,
+    RESWRD, ID, EOF, NUM, RELOP, ADDOP, MULOP, LEXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, COLON, OPENBRACKET, DOTDOT, CLOSEBRACKET, ASSIGNOP,
   }
 
   public static enum ResWordAttr {
-    PROGRAM, VAR, COLON, ARRAY, OF, INT_NAME, REAL_NAME, PROC, BEGIN, END, ASSIGNOP, IF, THEN, ELSE, WHILE, DO, CALL, NOT
+    PROGRAM, VAR, ARRAY, OF, INT_NAME, REAL_NAME, PROC, BEGIN, END, IF, THEN, ELSE, WHILE, DO, CALL, NOT
   }
 
   public static enum RelopAttr {
