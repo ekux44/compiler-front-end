@@ -59,10 +59,12 @@ public class Parser {
     result = reservedWordsMachine();
     if (result == null) {
       whitespaceMachine();
-      if (!source.hasNextChar(srcPosition)) // check there is something left after removing
-                                            // whitespace
+      if (!source.hasNextChar(srcPosition)) // check there is more after removing whitespace
         return result;
       result = idMachine();
+    }
+    if (result == null) {
+      result = relopMachine();
     }
     if (result == null) {
       result = catchAllMachine();
@@ -189,7 +191,42 @@ public class Parser {
   }
 
   private Token relopMachine() {
-    // TODO
+    SourceBuffer.SourcePointer backup = srcPosition.clone();
+    if (source.hasNextChar(srcPosition)){
+      String first = ""+ source.readNextChar(srcPosition);
+      source.advanceNextChar(srcPosition);
+      switch(first){
+        case "=": 
+          return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, first, srcPosition.lineNum);
+        case "<": 
+          if (source.hasNextChar(srcPosition)){
+            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition)=='>'){
+              source.advanceNextChar(srcPosition);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ, first, srcPosition.lineNum);
+            } else if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition)=='='){
+              source.advanceNextChar(srcPosition);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LTE, first, srcPosition.lineNum);
+            } else {
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LT, first, srcPosition.lineNum);
+            }
+          }
+          break;
+        case ">":
+          if (source.hasNextChar(srcPosition)){
+            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition)=='='){
+              source.advanceNextChar(srcPosition);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GTE, first, srcPosition.lineNum);
+            } else {
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GT, first, srcPosition.lineNum);
+            }
+          }
+        break;
+      }
+ 
+    }
+    
+    // if no token matched, revert source pointer and return null
+    srcPosition = backup;
     return null;
   }
 
