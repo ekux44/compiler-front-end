@@ -32,17 +32,19 @@ public class Parser {
 
       while (wordFile.hasNextLine() && wordFile.hasNext()) {
         String lexeme = wordFile.next();
-        String tokenType = wordFile.next();
+        String resType = wordFile.next();
         int attribute = wordFile.nextInt();
 
         for (Token.ResWordAttr tt : Token.ResWordAttr.values()) {
-          if (lexeme.equals(tt.toString())) {
+          if (resType.equals(tt.toString())) {
             reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt, lexeme, srcPosition));
           }
         }
       }
 
       wordFile.close();
+      out.println("successfully loaded " + reservedWordTable.size()
+          + " reserved words from reservedwords.txt");
     } catch (FileNotFoundException e) {
       out.println("reservedwords.txt not found");
     }
@@ -76,8 +78,6 @@ public class Parser {
       tokens.add(result);
     return result;
   }
-
-
 
   private boolean isWhiteSpace(char c) {
     if (c == ' ' || c == '\t' || c == '\n')
@@ -192,19 +192,19 @@ public class Parser {
 
   private Token relopMachine() {
     SourcePointer backup = srcPosition.clone();
-    
-    if (source.hasNextChar(srcPosition)){
-      String first = ""+ source.readNextChar(srcPosition);
+
+    if (source.hasNextChar(srcPosition)) {
+      String first = "" + source.readNextChar(srcPosition);
       source.advanceNextChar(srcPosition);
-      switch(first){
-        case "=": 
+      switch (first) {
+        case "=":
           return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, first, srcPosition);
-        case "<": 
-          if (source.hasNextChar(srcPosition)){
-            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition)=='>'){
+        case "<":
+          if (source.hasNextChar(srcPosition)) {
+            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition) == '>') {
               source.advanceNextChar(srcPosition);
               return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ, first, srcPosition);
-            } else if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition)=='='){
+            } else if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition) == '=') {
               source.advanceNextChar(srcPosition);
               return new Token(Token.Type.RELOP, Token.RelopAttr.LTE, first, srcPosition);
             } else {
@@ -213,19 +213,19 @@ public class Parser {
           }
           break;
         case ">":
-          if (source.hasNextChar(srcPosition)){
-            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition)=='='){
+          if (source.hasNextChar(srcPosition)) {
+            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition) == '=') {
               source.advanceNextChar(srcPosition);
               return new Token(Token.Type.RELOP, Token.RelopAttr.GTE, first, srcPosition);
             } else {
               return new Token(Token.Type.RELOP, Token.RelopAttr.GT, first, srcPosition);
             }
           }
-        break;
+          break;
       }
- 
+
     }
-    
+
     // if no token matched, revert source pointer and return null
     srcPosition = backup;
     return null;
@@ -238,31 +238,32 @@ public class Parser {
 
   private Token intMachine() {
     SourcePointer backup = srcPosition.clone();
-    
-    if (source.hasNextChar(srcPosition) && isDigit(source.readNextChar(srcPosition))){
+
+    if (source.hasNextChar(srcPosition) && isDigit(source.readNextChar(srcPosition))) {
       boolean seenNonZero = ('0' != source.readNextChar(srcPosition));
-      
-      String lex = ""+source.readNextChar(srcPosition);
+
+      String lex = "" + source.readNextChar(srcPosition);
       source.advanceNextChar(srcPosition);
-      
-      while(source.hasNextChar(srcPosition) && isDigit(source.readNextChar(srcPosition))){
+
+      while (source.hasNextChar(srcPosition) && isDigit(source.readNextChar(srcPosition))) {
         char c = source.readNextChar(srcPosition);
         lex += c;
         source.advanceNextChar(srcPosition);
-        
-        if(c != '0')
+
+        if (c != '0')
           seenNonZero = true;
-        if(!seenNonZero)
-          return new Token(Token.Type.LEXERR, "Invalid INT: multiple leading zeros", lex, srcPosition);
-        
-        if(lex.length()>10)
+        if (!seenNonZero)
+          return new Token(Token.Type.LEXERR, "Invalid INT: multiple leading zeros", lex,
+              srcPosition);
+
+        if (lex.length() > 10)
           return new Token(Token.Type.LEXERR, "Invalid INT: too long", lex, srcPosition);
       }
-      
+
       return new Token(Token.Type.NUM, lex, lex, srcPosition);
-      
+
     }
-    
+
     // if no token matched, revert source pointer and return null
     srcPosition = backup;
     return null;
@@ -287,46 +288,36 @@ public class Parser {
     Token result = null;
     switch (lex) {
       case "(":
-        result =
-            new Token(Token.Type.OPENPAREN, lex, lex, srcPosition);
+        result = new Token(Token.Type.OPENPAREN, lex, lex, srcPosition);
         break;
       case ")":
-        result =
-            new Token(Token.Type.CLOSEPAREN, lex, lex, srcPosition);
+        result = new Token(Token.Type.CLOSEPAREN, lex, lex, srcPosition);
         break;
       case ";":
-        result =
-            new Token(Token.Type.SEMICOLON, lex, lex, srcPosition);
+        result = new Token(Token.Type.SEMICOLON, lex, lex, srcPosition);
         break;
       case ",":
-        result =
-            new Token(Token.Type.COMMA, lex, lex, srcPosition);
+        result = new Token(Token.Type.COMMA, lex, lex, srcPosition);
         break;
 
       case "[":
-        result =
-            new Token(Token.Type.OPENBRACKET, lex, lex, srcPosition);
+        result = new Token(Token.Type.OPENBRACKET, lex, lex, srcPosition);
         break;
       case "]":
-        result =
-            new Token(Token.Type.CLOSEBRACKET, lex, lex, srcPosition);
+        result = new Token(Token.Type.CLOSEBRACKET, lex, lex, srcPosition);
         break;
 
       case "+":
-        result =
-            new Token(Token.Type.ADDOP, Token.AddopAttr.PLUS, lex, srcPosition);
+        result = new Token(Token.Type.ADDOP, Token.AddopAttr.PLUS, lex, srcPosition);
         break;
       case "-":
-        result =
-            new Token(Token.Type.ADDOP, Token.AddopAttr.MINUS, lex, srcPosition);
+        result = new Token(Token.Type.ADDOP, Token.AddopAttr.MINUS, lex, srcPosition);
         break;
       case "*":
-        result =
-            new Token(Token.Type.MULOP, Token.MulopAttr.TIMES, lex, srcPosition);
+        result = new Token(Token.Type.MULOP, Token.MulopAttr.TIMES, lex, srcPosition);
         break;
       case "/":
-        result =
-            new Token(Token.Type.MULOP, Token.MulopAttr.SLASH, lex, srcPosition);
+        result = new Token(Token.Type.MULOP, Token.MulopAttr.SLASH, lex, srcPosition);
         break;
     }
 
@@ -384,7 +375,8 @@ public class Parser {
     String formatting = "%-10s%-15s%-15s%-10s";
     output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
-      output.println(String.format(formatting, t.position.lineNum, t.lexeme, t.type.toString(), t.attribute));
+      output.println(String.format(formatting, t.position.lineNum, t.lexeme, t.type.toString(),
+          t.attribute));
     }
     output.close();
   }
