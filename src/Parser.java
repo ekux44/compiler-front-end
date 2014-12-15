@@ -67,6 +67,8 @@ public class Parser {
       result = idMachine();
     }
     if (result == null) {
+      result = longRealMachine();
+    } if (result == null) {
       result = realMachine();
     }
     if (result == null) {
@@ -130,14 +132,12 @@ public class Parser {
 
       // next consume one letter
       if (source.hasNext(srcPos) && isLetter(source.peek(srcPos))) {
-        candidate += source.peek(srcPos);
-        source.advanceChar(srcPos);
+        candidate += source.advanceChar(srcPos);
 
         // next consume any following letters or digits
         while (source.hasNext(srcPos)
             && (isLetter(source.peek(srcPos)) || isDigit(source.peek(srcPos)))) {
-          candidate += source.peek(srcPos);
-          source.advanceChar(srcPos);
+          candidate += source.advanceChar(srcPos);
         }
 
         // if candidate is followed by whitespace or EOF
@@ -164,14 +164,12 @@ public class Parser {
 
     // consume one letter
     if (source.hasNext(srcPos) && isLetter(source.peek(srcPos))) {
-      candidate += source.peek(srcPos);
-      source.advanceChar(srcPos);
+      candidate += source.advanceChar(srcPos);
 
       // next consume any following letters or digits
       while (source.hasNext(srcPos)
           && (isLetter(source.peek(srcPos)) || isDigit(source.peek(srcPos)))) {
-        candidate += source.peek(srcPos);
-        source.advanceChar(srcPos);
+        candidate += source.advanceChar(srcPos);
       }
 
       if (candidate.length() > 10)
@@ -202,8 +200,7 @@ public class Parser {
     SourcePointer backup = srcPos.clone();
 
     if (source.hasNext(srcPos)) {
-      String first = "" + source.peek(srcPos);
-      source.advanceChar(srcPos);
+      String first = "" + source.advanceChar(srcPos);
       switch (first) {
         case "=":
           return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, first, srcPos);
@@ -274,7 +271,7 @@ public class Parser {
   private Token realMachine() {
     SourcePointer backup = srcPos.clone();
 
-    eval: if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+    if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
       String lex = "" + source.advanceChar(srcPos);
 
       while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
@@ -283,6 +280,7 @@ public class Parser {
 
       if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
         lex += source.advanceChar(srcPos);
+        int dotIndex = lex.indexOf('.');
 
         if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
           lex += source.advanceChar(srcPos);
@@ -290,8 +288,6 @@ public class Parser {
           while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
             lex += source.advanceChar(srcPos);
           }
-
-          int dotIndex = lex.indexOf('.');
 
           if (lex.startsWith("00"))
             return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex,
@@ -311,8 +307,68 @@ public class Parser {
     return null;
   }
 
-  private Token longrealMachine() {
-    // TODO
+  private Token longRealMachine() {
+    SourcePointer backup = srcPos.clone();
+
+    if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+      String lex = "" + source.advanceChar(srcPos);
+
+      while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+        lex += source.advanceChar(srcPos);
+      }
+
+      if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
+        lex += source.advanceChar(srcPos);
+        int dotIndex = lex.indexOf('.');
+
+        if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+          lex += source.advanceChar(srcPos);
+
+          while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+            lex += source.advanceChar(srcPos);
+          }
+
+          if (source.hasNext(srcPos) && source.peek(srcPos) == 'E') {
+            lex += source.advanceChar(srcPos);
+            int eIndex = lex.indexOf('E');
+
+            if (source.hasNext(srcPos)
+                && (source.peek(srcPos) == '+' || source.peek(srcPos) == '-')) {
+              lex += source.advanceChar(srcPos);
+              eIndex++;
+            }
+
+            if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+              lex += source.advanceChar(srcPos);
+
+              while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+                lex += source.advanceChar(srcPos);
+              }
+
+
+              if (lex.startsWith("00"))
+                return new Token(Token.Type.LEXERR,
+                    "Invalid LONGREAL: multiple leading zeros in xx", lex, srcPos);
+              if (lex.substring(0, dotIndex).length() > 5)
+                return new Token(Token.Type.LEXERR, "Invalid LONGREAL: xx too long", lex, srcPos);
+              if (lex.substring(dotIndex + 1).length() > 5)
+                return new Token(Token.Type.LEXERR, "Invalid LONGREAL: yy too long", lex, srcPos);
+              if (lex.substring(eIndex).startsWith("00"))
+                return new Token(Token.Type.LEXERR,
+                    "Invalid LONGREAL: multiple leading zeros in zz", lex, srcPos);
+              if (lex.substring(eIndex).length() > 2)
+                return new Token(Token.Type.LEXERR, "Invalid LONGREAL: xx too long", lex, srcPos);
+
+
+              return new Token(Token.Type.NUM, lex, lex, srcPos);
+            }
+          }
+        }
+      }
+    }
+
+    // if no token matched, revert source pointer and return null
+    srcPos = backup;
     return null;
   }
 
