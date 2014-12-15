@@ -4,13 +4,13 @@ public class Token {
   public Type type;
   public Object attribute;
   public String lexeme;
-  public int lineNum;
+  public SourcePointer position;
 
-  public Token(Type t, Object attr, String lex, int lineNo) {
+  public Token(Type t, Object attr, String lex, SourcePointer pos) {
     type = t;
     attribute = attr;
     lexeme = lex;
-    lineNum = lineNo;
+    position = pos;
   }
 
   public static enum Type {
@@ -32,4 +32,5 @@ public class Token {
   public static enum MulopAttr {
     TIMES, SLASH, DIV, MOD, AND
   }
+  
 }

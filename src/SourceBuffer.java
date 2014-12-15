@@ -47,17 +47,4 @@ public class SourceBuffer {
       }
     }
   }
-
-  public static class SourcePointer implements Cloneable {
-    int lineNum;
-    int charInLineNum;
-
-    @Override
-    public SourcePointer clone() {
-      SourcePointer copy = new SourcePointer();
-      copy.lineNum = lineNum;
-      copy.charInLineNum = charInLineNum;
-      return copy;
-    }
-  }
 }
