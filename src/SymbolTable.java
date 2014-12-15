@@ -1,5 +1,7 @@
+/**
+ * @author Eric Kuxhausen
+ */
 import java.util.HashMap;
-
 
 public class SymbolTable {
 

@@ -1,4 +1,6 @@
-
+/**
+ * @author Eric Kuxhausen
+ */
 public class Token {
 
   public Type type;
@@ -14,9 +16,9 @@ public class Token {
   }
 
   public static enum Type {
-    RESWRD, ID, EOF, DOTDOT, NUM, RELOP, ADDOP, MULOP, LEXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, OPENBRACKET, CLOSEBRACKET, 
+    RESWRD, ID, EOF, DOTDOT, NUM, RELOP, ADDOP, MULOP, LEXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, OPENBRACKET, CLOSEBRACKET,
   }
-  
+
   public static enum ResWordAttr {
     PROGRAM, VAR, COLON, ARRAY, OF, INT_NAME, REAL_NAME, PROC, BEGIN, END, ASSIGNOP, IF, THEN, ELSE, WHILE, DO, CALL, NOT
   }
@@ -32,5 +34,5 @@ public class Token {
   public static enum MulopAttr {
     TIMES, SLASH, DIV, MOD, AND
   }
-  
+
 }

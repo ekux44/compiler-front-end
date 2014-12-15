@@ -5,12 +5,14 @@ import java.io.*;
 
 import static java.lang.System.out;
 
-
+/**
+ * @author Eric Kuxhausen
+ */
 public class Parser {
 
   private HashMap<String, Token> reservedWordTable = new HashMap<String, Token>();
   private SourceBuffer source = new SourceBuffer();
-  private SourcePointer srcPosition = new SourcePointer();
+  private SourcePointer srcPos = new SourcePointer();
   private SymbolTable symbols = new SymbolTable();
   private ArrayList<Token> tokens = new ArrayList<Token>();
 
@@ -37,7 +39,7 @@ public class Parser {
 
         for (Token.ResWordAttr tt : Token.ResWordAttr.values()) {
           if (resType.equals(tt.toString())) {
-            reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt, lexeme, srcPosition));
+            reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt, lexeme, srcPos));
           }
         }
       }
@@ -51,7 +53,7 @@ public class Parser {
   }
 
   public boolean hasNextToken() {
-    return source.hasNextChar(srcPosition);
+    return source.hasNext(srcPos);
   }
 
   public Token getNextToken() {
@@ -60,15 +62,21 @@ public class Parser {
     result = reservedWordsMachine();
     if (result == null) {
       whitespaceMachine();
-      if (!source.hasNextChar(srcPosition)) // check there is more after removing whitespace
+      if (!source.hasNext(srcPos)) // check there is more after removing whitespace
         return result;
       result = idMachine();
+    }
+    if (result == null) {
+      result = realMachine();
     }
     if (result == null) {
       result = intMachine();
     }
     if (result == null) {
       result = relopMachine();
+    }
+    if (result == null) {
+      result = eofMachine();
     }
     if (result == null) {
       result = catchAllMachine();
@@ -104,16 +112,16 @@ public class Parser {
   }
 
   private Token reservedWordsMachine() {
-    SourcePointer backup = srcPosition.clone();
+    SourcePointer backup = srcPos.clone();
 
     // first consume whitespace expected before id / reserved words
     boolean hasConsumedWhitespace = false;
-    if (this.srcPosition.lineNum == 0 && srcPosition.charInLineNum == 0) {
+    if (this.srcPos.lineNum == 0 && srcPos.charInLineNum == 0) {
       hasConsumedWhitespace = true; // whitespace not needed before first char in source
     }
 
-    while (source.hasNextChar(srcPosition) && isWhiteSpace(source.readNextChar(srcPosition))) {
-      source.advanceNextChar(srcPosition);
+    while (source.hasNext(srcPos) && isWhiteSpace(source.peek(srcPos))) {
+      source.advanceChar(srcPos);
       hasConsumedWhitespace = true;
     }
 
@@ -121,22 +129,20 @@ public class Parser {
       String candidate = "";
 
       // next consume one letter
-      if (source.hasNextChar(srcPosition) && isLetter(source.readNextChar(srcPosition))) {
-        candidate += source.readNextChar(srcPosition);
-        source.advanceNextChar(srcPosition);
+      if (source.hasNext(srcPos) && isLetter(source.peek(srcPos))) {
+        candidate += source.peek(srcPos);
+        source.advanceChar(srcPos);
 
         // next consume any following letters or digits
-        while (source.hasNextChar(srcPosition)
-            && (isLetter(source.readNextChar(srcPosition)) || isDigit(source
-                .readNextChar(srcPosition)))) {
-          candidate += source.readNextChar(srcPosition);
-          source.advanceNextChar(srcPosition);
+        while (source.hasNext(srcPos)
+            && (isLetter(source.peek(srcPos)) || isDigit(source.peek(srcPos)))) {
+          candidate += source.peek(srcPos);
+          source.advanceChar(srcPos);
         }
 
         // if candidate is followed by whitespace or EOF
-        if (source.hasNextChar(srcPosition)
-            && (isWhiteSpace(source.readNextChar(srcPosition)) || isEOF(source
-                .readNextChar(srcPosition)))) {
+        if (source.hasNext(srcPos)
+            && (isWhiteSpace(source.peek(srcPos)) || isEOF(source.peek(srcPos)))) {
 
           // check reserved word table
           if (reservedWordTable.containsKey(candidate)) {
@@ -147,37 +153,39 @@ public class Parser {
     }
 
     // if no token matched, revert source pointer and return null
-    srcPosition = backup;
+    srcPos = backup;
     return null;
   }
 
 
   private Token idMachine() {
-    SourcePointer backup = srcPosition.clone();
+    SourcePointer backup = srcPos.clone();
     String candidate = "";
 
     // consume one letter
-    if (source.hasNextChar(srcPosition) && isLetter(source.readNextChar(srcPosition))) {
-      candidate += source.readNextChar(srcPosition);
-      source.advanceNextChar(srcPosition);
+    if (source.hasNext(srcPos) && isLetter(source.peek(srcPos))) {
+      candidate += source.peek(srcPos);
+      source.advanceChar(srcPos);
 
       // next consume any following letters or digits
-      while (source.hasNextChar(srcPosition)
-          && (isLetter(source.readNextChar(srcPosition)) || isDigit(source
-              .readNextChar(srcPosition)))) {
-        candidate += source.readNextChar(srcPosition);
-        source.advanceNextChar(srcPosition);
+      while (source.hasNext(srcPos)
+          && (isLetter(source.peek(srcPos)) || isDigit(source.peek(srcPos)))) {
+        candidate += source.peek(srcPos);
+        source.advanceChar(srcPos);
       }
 
+      if (candidate.length() > 10)
+        return new Token(Token.Type.LEXERR, "Invalid ID: too long", candidate, srcPos);
+
       // Check add id to symbol table
-      Token t = new Token(Token.Type.ID, candidate, candidate, srcPosition);
+      Token t = new Token(Token.Type.ID, candidate, candidate, srcPos);
       if (!symbols.table.containsKey(candidate))
         symbols.table.put(candidate, t);
       return t;
     }
 
     // if no token matched, revert source pointer and return null
-    srcPosition = backup;
+    srcPos = backup;
     return null;
   }
 
@@ -185,92 +193,121 @@ public class Parser {
    * consumes whitespace
    */
   private void whitespaceMachine() {
-    while (source.hasNextChar(srcPosition) && isWhiteSpace(source.readNextChar(srcPosition))) {
-      source.advanceNextChar(srcPosition);
+    while (source.hasNext(srcPos) && isWhiteSpace(source.peek(srcPos))) {
+      source.advanceChar(srcPos);
     }
   }
 
   private Token relopMachine() {
-    SourcePointer backup = srcPosition.clone();
+    SourcePointer backup = srcPos.clone();
 
-    if (source.hasNextChar(srcPosition)) {
-      String first = "" + source.readNextChar(srcPosition);
-      source.advanceNextChar(srcPosition);
+    if (source.hasNext(srcPos)) {
+      String first = "" + source.peek(srcPos);
+      source.advanceChar(srcPos);
       switch (first) {
         case "=":
-          return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, first, srcPosition);
+          return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, first, srcPos);
         case "<":
-          if (source.hasNextChar(srcPosition)) {
-            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition) == '>') {
-              source.advanceNextChar(srcPosition);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ, first, srcPosition);
-            } else if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition) == '=') {
-              source.advanceNextChar(srcPosition);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.LTE, first, srcPosition);
+          if (source.hasNext(srcPos)) {
+            if (source.hasNext(srcPos) && source.peek(srcPos) == '>') {
+              source.advanceChar(srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ, first, srcPos);
+            } else if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
+              source.advanceChar(srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LTE, first, srcPos);
             } else {
-              return new Token(Token.Type.RELOP, Token.RelopAttr.LT, first, srcPosition);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LT, first, srcPos);
             }
           }
           break;
         case ">":
-          if (source.hasNextChar(srcPosition)) {
-            if (source.hasNextChar(srcPosition) && source.readNextChar(srcPosition) == '=') {
-              source.advanceNextChar(srcPosition);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.GTE, first, srcPosition);
+          if (source.hasNext(srcPos)) {
+            if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
+              source.advanceChar(srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GTE, first, srcPos);
             } else {
-              return new Token(Token.Type.RELOP, Token.RelopAttr.GT, first, srcPosition);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GT, first, srcPos);
             }
           }
           break;
       }
-
     }
 
     // if no token matched, revert source pointer and return null
-    srcPosition = backup;
+    srcPos = backup;
     return null;
   }
 
   private Token eofMachine() {
-    // TODO
+    if (source.hasNext(srcPos) && isEOF(source.peek(srcPos))) {
+      source.advanceChar(srcPos);
+      return new Token(Token.Type.EOF, null, ".", srcPos);
+    }
     return null;
   }
 
   private Token intMachine() {
-    SourcePointer backup = srcPosition.clone();
+    SourcePointer backup = srcPos.clone();
 
-    if (source.hasNextChar(srcPosition) && isDigit(source.readNextChar(srcPosition))) {
-      boolean seenNonZero = ('0' != source.readNextChar(srcPosition));
+    if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+      String lex = "" + source.advanceChar(srcPos);
 
-      String lex = "" + source.readNextChar(srcPosition);
-      source.advanceNextChar(srcPosition);
-
-      while (source.hasNextChar(srcPosition) && isDigit(source.readNextChar(srcPosition))) {
-        char c = source.readNextChar(srcPosition);
-        lex += c;
-        source.advanceNextChar(srcPosition);
-
-        if (c != '0')
-          seenNonZero = true;
-        if (!seenNonZero)
-          return new Token(Token.Type.LEXERR, "Invalid INT: multiple leading zeros", lex,
-              srcPosition);
-
-        if (lex.length() > 10)
-          return new Token(Token.Type.LEXERR, "Invalid INT: too long", lex, srcPosition);
+      while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+        lex += source.advanceChar(srcPos);
       }
 
-      return new Token(Token.Type.NUM, lex, lex, srcPosition);
+      if (lex.startsWith("00"))
+        return new Token(Token.Type.LEXERR, "Invalid INT: multiple leading zeros", lex, srcPos);
+      if (lex.length() > 10)
+        return new Token(Token.Type.LEXERR, "Invalid INT: too long", lex, srcPos);
+
+
+      return new Token(Token.Type.NUM, lex, lex, srcPos);
 
     }
 
     // if no token matched, revert source pointer and return null
-    srcPosition = backup;
+    srcPos = backup;
     return null;
   }
 
-  private Token longMachine() {
-    // TODO
+  private Token realMachine() {
+    SourcePointer backup = srcPos.clone();
+
+    eval: if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+      String lex = "" + source.advanceChar(srcPos);
+
+      while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+        lex += source.advanceChar(srcPos);
+      }
+
+      if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
+        lex += source.advanceChar(srcPos);
+
+        if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+          lex += source.advanceChar(srcPos);
+
+          while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+            lex += source.advanceChar(srcPos);
+          }
+
+          int dotIndex = lex.indexOf('.');
+
+          if (lex.startsWith("00"))
+            return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex,
+                srcPos);
+          if (lex.substring(0, dotIndex).length() > 5)
+            return new Token(Token.Type.LEXERR, "Invalid REAL: xx too long", lex, srcPos);
+          if (lex.substring(dotIndex + 1).length() > 5)
+            return new Token(Token.Type.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
+
+          return new Token(Token.Type.NUM, lex, lex, srcPos);
+        }
+      }
+    }
+
+    // if no token matched, revert source pointer and return null
+    srcPos = backup;
     return null;
   }
 
@@ -282,55 +319,54 @@ public class Parser {
   private Token catchAllMachine() {
     // TODO
 
-    String lex = "" + source.readNextChar(srcPosition);
+    String lex = "" + source.peek(srcPos);
 
 
     Token result = null;
     switch (lex) {
       case "(":
-        result = new Token(Token.Type.OPENPAREN, lex, lex, srcPosition);
+        result = new Token(Token.Type.OPENPAREN, lex, lex, srcPos);
         break;
       case ")":
-        result = new Token(Token.Type.CLOSEPAREN, lex, lex, srcPosition);
+        result = new Token(Token.Type.CLOSEPAREN, lex, lex, srcPos);
         break;
       case ";":
-        result = new Token(Token.Type.SEMICOLON, lex, lex, srcPosition);
+        result = new Token(Token.Type.SEMICOLON, lex, lex, srcPos);
         break;
       case ",":
-        result = new Token(Token.Type.COMMA, lex, lex, srcPosition);
+        result = new Token(Token.Type.COMMA, lex, lex, srcPos);
         break;
 
       case "[":
-        result = new Token(Token.Type.OPENBRACKET, lex, lex, srcPosition);
+        result = new Token(Token.Type.OPENBRACKET, lex, lex, srcPos);
         break;
       case "]":
-        result = new Token(Token.Type.CLOSEBRACKET, lex, lex, srcPosition);
+        result = new Token(Token.Type.CLOSEBRACKET, lex, lex, srcPos);
         break;
 
       case "+":
-        result = new Token(Token.Type.ADDOP, Token.AddopAttr.PLUS, lex, srcPosition);
+        result = new Token(Token.Type.ADDOP, Token.AddopAttr.PLUS, lex, srcPos);
         break;
       case "-":
-        result = new Token(Token.Type.ADDOP, Token.AddopAttr.MINUS, lex, srcPosition);
+        result = new Token(Token.Type.ADDOP, Token.AddopAttr.MINUS, lex, srcPos);
         break;
       case "*":
-        result = new Token(Token.Type.MULOP, Token.MulopAttr.TIMES, lex, srcPosition);
+        result = new Token(Token.Type.MULOP, Token.MulopAttr.TIMES, lex, srcPos);
         break;
       case "/":
-        result = new Token(Token.Type.MULOP, Token.MulopAttr.SLASH, lex, srcPosition);
+        result = new Token(Token.Type.MULOP, Token.MulopAttr.SLASH, lex, srcPos);
         break;
     }
 
     if (result != null) {
-      source.advanceNextChar(srcPosition);
+      source.advanceChar(srcPos);
       return result;
     }
 
 
+    source.advanceChar(srcPos);
 
-    source.advanceNextChar(srcPosition);
-
-    Token err = new Token(Token.Type.LEXERR, "Unrecog Symbol", lex, srcPosition);
+    Token err = new Token(Token.Type.LEXERR, "Unrecog Symbol", lex, srcPos);
     return err;
   }
 
@@ -354,7 +390,6 @@ public class Parser {
     try {
       output = new PrintWriter(string);
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
     }
 
     for (int i = 0; i < source.getNumLines(); i++) {
@@ -369,7 +404,6 @@ public class Parser {
     try {
       output = new PrintWriter(string);
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
     }
 
     String formatting = "%-10s%-15s%-15s%-10s";
