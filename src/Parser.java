@@ -37,9 +37,15 @@ public class Parser {
         String resType = wordFile.next();
         int attribute = wordFile.nextInt();
 
-        for (Token.ResWordAttr tt : Token.ResWordAttr.values()) {
-          if (resType.equals(tt.toString())) {
-            reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt, lexeme, srcPos));
+        if (resType.equals(Token.Type.ADDOP.toString())) {
+          reservedWordTable.put(lexeme, new Token(Token.Type.ADDOP, attribute, lexeme, srcPos));
+        } else if (resType.equals(Token.Type.MULOP.toString())) {
+          reservedWordTable.put(lexeme, new Token(Token.Type.MULOP, attribute, lexeme, srcPos));
+        } else {
+          for (Token.ResWordAttr tt : Token.ResWordAttr.values()) {
+            if (resType.equals(tt.toString())) {
+              reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt, lexeme, srcPos));
+            }
           }
         }
       }
@@ -197,30 +203,30 @@ public class Parser {
     SourcePointer backup = srcPos.clone();
 
     if (source.hasNext(srcPos)) {
-      String first = "" + source.advanceChar(srcPos);
-      switch (first) {
+      String lex = "" + source.advanceChar(srcPos);
+      switch (lex) {
         case "=":
-          return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, first, srcPos);
+          return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, lex, srcPos);
         case "<":
           if (source.hasNext(srcPos)) {
             if (source.hasNext(srcPos) && source.peek(srcPos) == '>') {
-              source.advanceChar(srcPos);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ, first, srcPos);
+              lex += source.advanceChar(srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ, lex, srcPos);
             } else if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
-              source.advanceChar(srcPos);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.LTE, first, srcPos);
+              lex += source.advanceChar(srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LTE, lex, srcPos);
             } else {
-              return new Token(Token.Type.RELOP, Token.RelopAttr.LT, first, srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LT, lex, srcPos);
             }
           }
           break;
         case ">":
           if (source.hasNext(srcPos)) {
             if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
-              source.advanceChar(srcPos);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.GTE, first, srcPos);
+              lex += source.advanceChar(srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GTE, lex, srcPos);
             } else {
-              return new Token(Token.Type.RELOP, Token.RelopAttr.GT, first, srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GT, lex, srcPos);
             }
           }
           break;
@@ -282,6 +288,7 @@ public class Parser {
       }
     }
 
+    SourcePointer notLongBackup = srcPos.clone();
     if (source.hasNext(srcPos) && source.peek(srcPos) == 'E') {
       hasExp = true;
       lex += source.advanceChar(srcPos);
@@ -306,20 +313,18 @@ public class Parser {
       if (yCount > 5)
         return new Token(Token.Type.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
 
-
-      if (hasExp) {
+      if (hasExp && zCount > 0) {
         if (zCount > 2)
           return new Token(Token.Type.LEXERR, "Invalid REAL: zz too long", lex, srcPos);
-        else if (zCount == 0)
-          return new Token(Token.Type.LEXERR, "Invalid REAL: zz not present", lex, srcPos);
         else if (lex.substring(lex.length() - zCount).startsWith("00"))
           return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in zz", lex,
               srcPos);
         else
           return new Token(Token.Type.NUM, lex, lex, srcPos);
-      } else
+      } else {
+        srcPos = notLongBackup;
         return new Token(Token.Type.NUM, lex, lex, srcPos);
-
+      }
     }
 
 
@@ -417,7 +422,7 @@ public class Parser {
     } catch (FileNotFoundException e) {
     }
 
-    String formatting = "%-10s%-15s%-15s%-10s";
+    String formatting = "%-10s%-20s%-20s%-10s";
     output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
       output.println(String.format(formatting, t.position.lineNum, t.lexeme, t.type.toString(),
