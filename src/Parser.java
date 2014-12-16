@@ -67,9 +67,6 @@ public class Parser {
       result = idMachine();
     }
     if (result == null) {
-      result = longRealMachine();
-    }
-    if (result == null) {
       result = realMachine();
     }
     if (result == null) {
@@ -263,101 +260,66 @@ public class Parser {
   private Token realMachine() {
     SourcePointer backup = srcPos.clone();
 
-    if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-      String lex = "" + source.advanceChar(srcPos);
+    String lex = "";
+    int xCount = 0;
+    boolean hasDot = false;
+    int yCount = 0;
+    boolean hasExp = false;
+    int zCount = 0;
+    
+    while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+      xCount++;
+      lex += source.advanceChar(srcPos);
+    }
 
+    if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
+      hasDot=true;
+      lex += source.advanceChar(srcPos);
+      
       while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+        yCount++;
         lex += source.advanceChar(srcPos);
       }
-
-      if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
+    }
+    
+    if (source.hasNext(srcPos) && source.peek(srcPos) == 'E') {
+      hasExp = true;
+      lex += source.advanceChar(srcPos);
+      
+      if (source.hasNext(srcPos) && (source.peek(srcPos) == '+' || source.peek(srcPos) == '-')) {
         lex += source.advanceChar(srcPos);
-        int dotIndex = lex.indexOf('.');
+      }
+      
+      while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
+        zCount++;
+        lex += source.advanceChar(srcPos);
+       }
+    }
 
-        if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-          lex += source.advanceChar(srcPos);
-
-          while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-            lex += source.advanceChar(srcPos);
-          }
-
-          if (lex.startsWith("00"))
-            return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex,
-                srcPos);
-          if (lex.substring(0, dotIndex).length() > 5)
-            return new Token(Token.Type.LEXERR, "Invalid REAL: xx too long", lex, srcPos);
-          if (lex.substring(dotIndex + 1).length() > 5)
-            return new Token(Token.Type.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
-
+    
+    if(xCount>0 && hasDot && yCount>0){
+      if (lex.startsWith("00"))
+        return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex, srcPos);
+      if (xCount > 5)
+        return new Token(Token.Type.LEXERR, "Invalid REAL: xx too long", lex, srcPos);
+      if (yCount > 5)
+        return new Token(Token.Type.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
+      
+      
+      if(hasExp){
+        if (zCount > 2)
+          return new Token(Token.Type.LEXERR, "Invalid REAL: zz too long", lex, srcPos);
+        else if (zCount == 0)
+          return new Token(Token.Type.LEXERR, "Invalid REAL: zz not present", lex, srcPos); 
+        else if (lex.substring(lex.length()-zCount).startsWith("00"))
+          return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in zz", lex, srcPos);
+        else
           return new Token(Token.Type.NUM, lex, lex, srcPos);
-        }
-      }
+      } else 
+        return new Token(Token.Type.NUM, lex, lex, srcPos);
+      
     }
-
-    // if no token matched, revert source pointer and return null
-    srcPos = backup;
-    return null;
-  }
-
-  private Token longRealMachine() {
-    SourcePointer backup = srcPos.clone();
-
-    if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-      String lex = "" + source.advanceChar(srcPos);
-
-      while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-        lex += source.advanceChar(srcPos);
-      }
-
-      if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
-        lex += source.advanceChar(srcPos);
-        int dotIndex = lex.indexOf('.');
-
-        if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-          lex += source.advanceChar(srcPos);
-
-          while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-            lex += source.advanceChar(srcPos);
-          }
-
-          if (source.hasNext(srcPos) && source.peek(srcPos) == 'E') {
-            lex += source.advanceChar(srcPos);
-            int eIndex = lex.indexOf('E');
-
-            if (source.hasNext(srcPos)
-                && (source.peek(srcPos) == '+' || source.peek(srcPos) == '-')) {
-              lex += source.advanceChar(srcPos);
-              eIndex++;
-            }
-
-            if (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-              lex += source.advanceChar(srcPos);
-
-              while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-                lex += source.advanceChar(srcPos);
-              }
-
-
-              if (lex.startsWith("00"))
-                return new Token(Token.Type.LEXERR,
-                    "Invalid LONGREAL: multiple leading zeros in xx", lex, srcPos);
-              if (lex.substring(0, dotIndex).length() > 5)
-                return new Token(Token.Type.LEXERR, "Invalid LONGREAL: xx too long", lex, srcPos);
-              if (lex.substring(dotIndex + 1).length() > 5)
-                return new Token(Token.Type.LEXERR, "Invalid LONGREAL: yy too long", lex, srcPos);
-              if (lex.substring(eIndex).startsWith("00"))
-                return new Token(Token.Type.LEXERR,
-                    "Invalid LONGREAL: multiple leading zeros in zz", lex, srcPos);
-              if (lex.substring(eIndex).length() > 2)
-                return new Token(Token.Type.LEXERR, "Invalid LONGREAL: xx too long", lex, srcPos);
-
-
-              return new Token(Token.Type.NUM, lex, lex, srcPos);
-            }
-          }
-        }
-      }
-    }
+      
 
     // if no token matched, revert source pointer and return null
     srcPos = backup;

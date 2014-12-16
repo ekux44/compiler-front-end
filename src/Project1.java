@@ -4,7 +4,7 @@
 public class Project1 {
 
   public static void main(String[] args) {
-    String filename = "sampleFromGrammar";
+    String filename = "allLexErrors";
 
 
     Parser p = new Parser(Parser.getFile("input/" + filename + ".pas"));
