@@ -266,60 +266,62 @@ public class Parser {
     int yCount = 0;
     boolean hasExp = false;
     int zCount = 0;
-    
+
     while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
       xCount++;
       lex += source.advanceChar(srcPos);
     }
 
     if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
-      hasDot=true;
+      hasDot = true;
       lex += source.advanceChar(srcPos);
-      
+
       while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
         yCount++;
         lex += source.advanceChar(srcPos);
       }
     }
-    
+
     if (source.hasNext(srcPos) && source.peek(srcPos) == 'E') {
       hasExp = true;
       lex += source.advanceChar(srcPos);
-      
+
       if (source.hasNext(srcPos) && (source.peek(srcPos) == '+' || source.peek(srcPos) == '-')) {
         lex += source.advanceChar(srcPos);
       }
-      
+
       while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
         zCount++;
         lex += source.advanceChar(srcPos);
-       }
+      }
     }
 
-    
-    if(xCount>0 && hasDot && yCount>0){
+
+    if (xCount > 0 && hasDot && yCount > 0) {
       if (lex.startsWith("00"))
-        return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex, srcPos);
+        return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex,
+            srcPos);
       if (xCount > 5)
         return new Token(Token.Type.LEXERR, "Invalid REAL: xx too long", lex, srcPos);
       if (yCount > 5)
         return new Token(Token.Type.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
-      
-      
-      if(hasExp){
+
+
+      if (hasExp) {
         if (zCount > 2)
           return new Token(Token.Type.LEXERR, "Invalid REAL: zz too long", lex, srcPos);
         else if (zCount == 0)
-          return new Token(Token.Type.LEXERR, "Invalid REAL: zz not present", lex, srcPos); 
-        else if (lex.substring(lex.length()-zCount).startsWith("00"))
-          return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in zz", lex, srcPos);
+          return new Token(Token.Type.LEXERR, "Invalid REAL: zz not present", lex, srcPos);
+        else if (lex.substring(lex.length() - zCount).startsWith("00"))
+          return new Token(Token.Type.LEXERR, "Invalid REAL: multiple leading zeros in zz", lex,
+              srcPos);
         else
           return new Token(Token.Type.NUM, lex, lex, srcPos);
-      } else 
+      } else
         return new Token(Token.Type.NUM, lex, lex, srcPos);
-      
+
     }
-      
+
 
     // if no token matched, revert source pointer and return null
     srcPos = backup;
@@ -396,9 +398,14 @@ public class Parser {
     } catch (FileNotFoundException e) {
     }
 
-    for (int i = 0; i < source.getNumLines(); i++) {
-      output.print(i + "   " + source.getLine(i));
-      // TODO add formatting and tokens
+    int lineNo = -1;
+    for (Token t : tokens) {
+      while (t.position.lineNum > lineNo) {
+        lineNo++;
+        output.print(String.format("%-8s", "" + lineNo) + source.getLine(lineNo));
+      }
+      if (t.type == Token.Type.LEXERR)
+        output.println("LEXERR: " + t.attribute);
     }
     output.close();
   }
