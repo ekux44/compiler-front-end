@@ -29,9 +29,21 @@ public class Parser {
 
       t = l.getNextToken();
     } else {
-      // tokens.add(new Token(Type.SYNTAXERR, "Expected "))
+      String message = errMsg({type}, {attr});
+      tokens.add(Token.syntaxErr(message, t.position));
     }
   }
+
+  private String errMsg(Token.Type[] types, Object[] attrs) {
+    String result = "Expected ";
+    for (int i = 0; i < types.length; i++) {
+      result += (i > 0) ? "," : "";
+      result += "{ " + types[i].toString() + " " + Token.getAttribute(types[i], attrs[i]) + " }";
+    }
+    result += "encountered {" + t.type.toString() + " " + t.getAttributes();
+    return result;
+  }
+
 
   public void program() {
     switch (t.type) {

@@ -23,24 +23,32 @@ public class Token implements Cloneable {
     position = pos.clone();
   }
 
+  public static Token syntaxErr(String message, SourcePointer pos) {
+    return new Token(Type.SYNTAXERR, message, null, pos);
+  }
+
   public Token clone() {
     return new Token(type, attribute, lexeme, position.clone());
   }
 
-  public String getAttribute() {
-    switch (type) {
+  public static String getAttribute(Type t, Object attr) {
+    switch (t) {
       case RESWRD:
-        return ResWordAttr.values()[(int) attribute].toString();
+        return ResWordAttr.values()[(int) attr].toString();
       case RELOP:
-        return RelopAttr.values()[(int) attribute].toString();
+        return RelopAttr.values()[(int) attr].toString();
       case ADDOP:
-        return AddopAttr.values()[(int) attribute].toString();
+        return AddopAttr.values()[(int) attr].toString();
       case MULOP:
-        return MulopAttr.values()[(int) attribute].toString();
+        return MulopAttr.values()[(int) attr].toString();
     }
-    if (attribute != null)
-      return attribute.toString();
+    if (attr != null)
+      return attr.toString();
     return "NULL";
+  }
+
+  public String getAttributes() {
+    return Token.getAttribute(type, attribute);
   }
 
   public static enum Type {
