@@ -8,7 +8,7 @@ import static java.lang.System.out;
 /**
  * @author Eric Kuxhausen
  */
-public class Parser {
+public class Lexar {
 
   private HashMap<String, Token> reservedWordTable = new HashMap<String, Token>();
   private SourceBuffer source = new SourceBuffer();
@@ -16,7 +16,7 @@ public class Parser {
   private SymbolTable symbols = new SymbolTable();
   private ArrayList<Token> tokens = new ArrayList<Token>();
 
-  public Parser(Scanner file) {
+  public Lexar(Scanner file) {
     loadReservedWordTable();
 
     while (file.hasNextLine()) {

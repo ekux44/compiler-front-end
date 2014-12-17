@@ -7,15 +7,15 @@ public class Project1 {
 
   public static void main(String[] args) {
     for (String filename : args) {
-      Scanner file = Parser.getFile("input/" + filename + ".pas");
+      Scanner file = Lexar.getFile("input/" + filename + ".pas");
       if (file != null) {
-        Parser p = new Parser(file);
+        Lexar l = new Lexar(file);
         while (true) {
-          if (p.getNextToken() == null)
+          if (l.getNextToken() == null)
             break;
         }
-        p.writeListingFile("output/" + filename + ".listing");
-        p.writeTokenFile("output/" + filename + ".token");
+        l.writeListingFile("output/" + filename + ".listing");
+        l.writeTokenFile("output/" + filename + ".token");
 
       }
     }
