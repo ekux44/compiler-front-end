@@ -8,7 +8,15 @@ public class Token implements Cloneable {
   public String lexeme;
   public SourcePointer position;
 
-  public Token(Type t, Object attr, String lex, SourcePointer pos) {
+  public Token(Type t, int attr, String lex, SourcePointer pos) {
+    this(t, (Object) attr, lex, pos);
+  }
+
+  public Token(Type t, String attr, String lex, SourcePointer pos) {
+    this(t, (Object) attr, lex, pos);
+  }
+
+  private Token(Type t, Object attr, String lex, SourcePointer pos) {
     type = t;
     attribute = attr;
     lexeme = lex;
@@ -19,8 +27,24 @@ public class Token implements Cloneable {
     return new Token(type, attribute, lexeme, position.clone());
   }
 
+  public String getAttribute() {
+    switch (type) {
+      case RESWRD:
+        return ResWordAttr.values()[(int) attribute].toString();
+      case RELOP:
+        return RelopAttr.values()[(int) attribute].toString();
+      case ADDOP:
+        return AddopAttr.values()[(int) attribute].toString();
+      case MULOP:
+        return MulopAttr.values()[(int) attribute].toString();
+    }
+    if (attribute != null)
+      return attribute.toString();
+    return "NULL";
+  }
+
   public static enum Type {
-    RESWRD, ID, EOF, NUM, RELOP, ADDOP, MULOP, LEXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, COLON, OPENBRACKET, DOTDOT, CLOSEBRACKET, ASSIGNOP,
+    RESWRD, ID, EOF, NUM, RELOP, ADDOP, MULOP, LEXERR, SYNTAXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, COLON, OPENBRACKET, DOTDOT, CLOSEBRACKET, ASSIGNOP,
   }
 
   public static enum ResWordAttr {

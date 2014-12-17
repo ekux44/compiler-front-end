@@ -44,7 +44,8 @@ public class Lexar {
         } else {
           for (Token.ResWordAttr tt : Token.ResWordAttr.values()) {
             if (resType.equals(tt.toString())) {
-              reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt, lexeme, srcPos));
+              reservedWordTable.put(lexeme, new Token(Token.Type.RESWRD, tt.ordinal(), lexeme,
+                  srcPos));
             }
           }
         }
@@ -56,10 +57,6 @@ public class Lexar {
     } catch (FileNotFoundException e) {
       out.println("reservedwords.txt not found");
     }
-  }
-
-  public boolean hasNextToken() {
-    return source.hasNext(srcPos);
   }
 
   public Token getNextToken() {
@@ -206,17 +203,17 @@ public class Lexar {
       String lex = "" + source.advanceChar(srcPos);
       switch (lex) {
         case "=":
-          return new Token(Token.Type.RELOP, Token.RelopAttr.EQ, lex, srcPos);
+          return new Token(Token.Type.RELOP, Token.RelopAttr.EQ.ordinal(), lex, srcPos);
         case "<":
           if (source.hasNext(srcPos)) {
             if (source.hasNext(srcPos) && source.peek(srcPos) == '>') {
               lex += source.advanceChar(srcPos);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ, lex, srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.NEQ.ordinal(), lex, srcPos);
             } else if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
               lex += source.advanceChar(srcPos);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.LTE, lex, srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LTE.ordinal(), lex, srcPos);
             } else {
-              return new Token(Token.Type.RELOP, Token.RelopAttr.LT, lex, srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.LT.ordinal(), lex, srcPos);
             }
           }
           break;
@@ -224,9 +221,9 @@ public class Lexar {
           if (source.hasNext(srcPos)) {
             if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
               lex += source.advanceChar(srcPos);
-              return new Token(Token.Type.RELOP, Token.RelopAttr.GTE, lex, srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GTE.ordinal(), lex, srcPos);
             } else {
-              return new Token(Token.Type.RELOP, Token.RelopAttr.GT, lex, srcPos);
+              return new Token(Token.Type.RELOP, Token.RelopAttr.GT.ordinal(), lex, srcPos);
             }
           }
           break;
@@ -375,8 +372,6 @@ public class Lexar {
       }
     }
 
-    source.advanceChar(srcPos);
-
     Token err = new Token(Token.Type.LEXERR, "Unrecog Symbol", lex, srcPos);
     return err;
   }
@@ -426,7 +421,7 @@ public class Lexar {
     output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
       output.println(String.format(formatting, t.position.lineNum, t.lexeme, t.type.toString(),
-          t.attribute));
+          t.getAttribute()));
     }
     output.close();
   }
