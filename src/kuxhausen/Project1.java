@@ -1,3 +1,4 @@
+package kuxhausen;
 import java.util.Scanner;
 
 /**
