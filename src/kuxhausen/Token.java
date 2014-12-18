@@ -18,6 +18,10 @@ public class Token implements Cloneable {
     this(t, (Object) attr, lex, pos);
   }
 
+  public Token pair(Type t, Enum attr) {
+    return new Token(t, attr.ordinal(), null, null);
+  }
+
   private Token(Type t, Object attr, String lex, SourcePointer pos) {
     type = t;
     attribute = attr;

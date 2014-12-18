@@ -9,13 +9,13 @@ import kuxhausen.Token.*;
  */
 public class Parser {
 
-  private Lexar l;
-  private Token t;
-  private ArrayList<Token> tokens = new ArrayList<Token>();
+  private Lexar mL;
+  private Token mT;
+  private ArrayList<Token> mTokens = new ArrayList<Token>();
 
   Parser(Lexar lex) {
-    l = lex;
-    t = l.getNextToken();
+    mL = lex;
+    mT = mL.getNextToken();
     program();
   }
 
@@ -33,16 +33,16 @@ public class Parser {
   }
 
   public void match(Type type, Object attr) throws ParErr {
-    if (type == t.type) {
+    if (type == mT.type) {
       // TODO
 
 
-      t = l.getNextToken();
+      mT = mL.getNextToken();
     } else {
       Type[] types = {type};
       Object[] attrs = {attr};
       String message = errMsg(types, attrs);
-      tokens.add(Token.syntaxErr(message, t.position));
+      mTokens.add(Token.syntaxErr(message, mT.position));
       throw new ParErr();
     }
   }
@@ -53,16 +53,38 @@ public class Parser {
       result += (i > 0) ? "," : "";
       result += "{ " + types[i].toString() + " " + Token.getAttribute(types[i], attrs[i]) + " }";
     }
-    result += "encountered {" + t.type.toString() + " " + t.getAttribute();
+    result += "encountered {" + mT.type.toString() + " " + mT.getAttribute();
     return result;
   }
 
+  private void sync(Token[] syncSet) {
+    while (mT != null && !inSet(syncSet)) {
+      mT = mL.getNextToken();
+    }
+  }
+
+  private boolean inSet(Token[] syncSet) {
+    for (Token s : syncSet) {
+      if (mT.type == s.type) {
+        // if one of these types, have to compare attributes as well
+        if (mT.type == Type.RESWRD || mT.type == Type.RELOP || mT.type == Type.ADDOP
+            || mT.type == Type.MULOP) {
+          if (((int) mT.attribute) == ((int) s.attribute)) {
+            return true;
+          }
+        } else {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   void program() {
     try {
-      switch (t.type) {
+      switch (mT.type) {
         case RESWRD:
-          switch (ResWordAttr.values()[(int) t.attribute]) {
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
             case PROGRAM:
               match(Type.RESWRD, ResWordAttr.PROGRAM);
               match(Type.ID, null);
