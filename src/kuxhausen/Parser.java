@@ -530,19 +530,139 @@ public class Parser {
   }
 
   void arguments() {
+    mSet = new Token[] {pair(Type.SEMICOLON, null)};
 
+    try {
+      switch (mT.type) {
+        case OPENPAREN:
+          match(Type.OPENPAREN, null);
+          parameterList();
+          match(Type.CLOSEPAREN, null);
+          return;
+      }
+
+      Token[] toks = {pair(Type.OPENPAREN, null)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void parameterList() {
+    mSet = new Token[] {pair(Type.CLOSEPAREN, null)};
 
+    try {
+      switch (mT.type) {
+        case ID:
+          match(Type.ID, null);
+          match(Type.COLON, null);
+          type();
+          parameterListTail();
+          return;
+      }
+
+      Token[] toks = {pair(Type.ID, null)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
+  }
+
+  void parameterListTail() {
+    mSet = new Token[] {pair(Type.CLOSEPAREN, null)};
+
+    try {
+      switch (mT.type) {
+        case CLOSEPAREN:
+          return;
+        case SEMICOLON:
+          match(Type.SEMICOLON, null);
+          match(Type.ID, null);
+          match(Type.COLON, null);
+          type();
+          parameterListTail();
+          return;
+      }
+
+      Token[] toks = {pair(Type.CLOSEPAREN, null), pair(Type.SEMICOLON, null)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void compoundStatement() {
+    mSet = new Token[] {pair(Type.EOF, null), pair(Type.SEMICOLON, null)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case BEGIN:
+              match(Type.RESWRD, ResWordAttr.BEGIN);
+              compoundStatementTail();
+              return;
+          }
+          break;
+      }
+
+      Token[] toks = {pair(Type.RESWRD, ResWordAttr.BEGIN)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void compoundStatementTail() {
+    mSet = new Token[] {pair(Type.EOF, null), pair(Type.SEMICOLON, null)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case BEGIN:
+              optionalStatements();
+              match(Type.RESWRD, ResWordAttr.END);
+              return;
+            case END:
+              match(Type.RESWRD, ResWordAttr.END);
+              return;
+            case IF:
+              optionalStatements();
+              match(Type.RESWRD, ResWordAttr.END);
+              return;
+            case WHILE:
+              optionalStatements();
+              match(Type.RESWRD, ResWordAttr.END);
+              return;
+            case CALL:
+              optionalStatements();
+              match(Type.RESWRD, ResWordAttr.END);
+          }
+          break;
+        case ID:
+          optionalStatements();
+          match(Type.RESWRD, ResWordAttr.END);
+      }
+
+      Token[] toks =
+          {pair(Type.RESWRD, ResWordAttr.BEGIN), pair(Type.RESWRD, ResWordAttr.END),
+              pair(Type.RESWRD, ResWordAttr.IF), pair(Type.RESWRD, ResWordAttr.WHILE),
+              pair(Type.RESWRD, ResWordAttr.CALL)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void optionalStatements() {
