@@ -34,18 +34,22 @@ public class Token implements Cloneable {
   }
 
   public String getAttribute() {
-    switch (type) {
-      case RESWRD:
-        return ResWordAttr.values()[(int) attribute].toString();
-      case RELOP:
-        return RelopAttr.values()[(int) attribute].toString();
-      case ADDOP:
-        return AddopAttr.values()[(int) attribute].toString();
-      case MULOP:
-        return MulopAttr.values()[(int) attribute].toString();
+    if (attribute != null) {
+      if (attribute instanceof Integer && (int) attribute != -1) {
+        switch (type) {
+          case RESWRD:
+            return ResWordAttr.values()[(int) attribute].toString();
+          case RELOP:
+            return RelopAttr.values()[(int) attribute].toString();
+          case ADDOP:
+            return AddopAttr.values()[(int) attribute].toString();
+          case MULOP:
+            return MulopAttr.values()[(int) attribute].toString();
+        }
+      } else if (!(attribute instanceof Integer)) {
+        return attribute.toString();
+      }
     }
-    if (attribute != null)
-      return attribute.toString();
     return "NULL";
   }
 

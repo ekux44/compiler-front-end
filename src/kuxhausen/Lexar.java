@@ -288,7 +288,7 @@ public class Lexar {
     }
 
     SourcePointer notLongBackup = srcPos.clone();
-    if (source.hasNext(srcPos) && source.peek(srcPos) == 'E') {
+    if (source.hasNext(srcPos) && (source.peek(srcPos) == 'E' || source.peek(srcPos) == 'e')) {
       hasExp = true;
       lex += source.advanceChar(srcPos);
 

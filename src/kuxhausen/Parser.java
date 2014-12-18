@@ -64,7 +64,7 @@ public class Parser {
       result += (i > 0) ? "," : "";
       result += "{ " + tokens[i].type.toString() + " " + tokens[i].getAttribute() + " }";
     }
-    result += "encountered {" + mT.type.toString() + " " + mT.getAttribute();
+    result += "encountered { " + mT.type.toString() + " " + mT.getAttribute()+" }";
     return result;
   }
 
@@ -95,6 +95,7 @@ public class Parser {
               match(Type.OPENPAREN, null);
               identifierList();
               match(Type.CLOSEPAREN, null);
+              match(Type.SEMICOLON, null);
               programTail();
               return;
           }
@@ -292,6 +293,7 @@ public class Parser {
               match(Type.NUM, null);
               match(Type.DOTDOT, null);
               match(Type.NUM, null);
+              match(Type.CLOSEBRACKET, null);
               match(Type.RESWRD, ResWordAttr.OF);
               standardType();
               return;
