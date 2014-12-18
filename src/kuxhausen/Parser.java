@@ -10,7 +10,17 @@ import kuxhausen.Token.*;
 public class Parser {
 
   private Lexar mL;
+
+  /**
+   * current Token
+   */
   private Token mT;
+
+  /**
+   * sync set for the current nonTerminal
+   */
+  private Token[] mSet;
+
   private ArrayList<Token> mTokens = new ArrayList<Token>();
 
   Parser(Lexar lex) {
@@ -29,58 +39,56 @@ public class Parser {
 
   }
 
-  class ParErr extends Exception {
+  private class ParErr extends Exception {
   }
 
-  public void match(Type type, Object attr) throws ParErr {
-    if (type == mT.type) {
-      // TODO
+  Token pair(Type type, Enum attr) {
+    return new Token(type, (attr != null) ? attr.ordinal() : null, null, null);
+  }
 
-
+  public void match(Type type, Enum attr) throws ParErr {
+    Token desired = pair(type, attr);
+    if (mT!=null && mT.fullTypeMatch(desired)) {
       mT = mL.getNextToken();
     } else {
-      Type[] types = {type};
-      Object[] attrs = {attr};
-      String message = errMsg(types, attrs);
-      mTokens.add(Token.syntaxErr(message, mT.position));
+      Token[] toks = {pair(type, attr)};
+      wanted(toks);
       throw new ParErr();
     }
   }
 
-  private String errMsg(Type[] types, Object[] attrs) {
+  private void wanted(Token[] wanted) {
+    String message = generateErrorMessage(wanted);
+    mTokens.add(Token.syntaxErr(message, mT.position));
+  }
+
+  private String generateErrorMessage(Token[] tokens) {
     String result = "Expected ";
-    for (int i = 0; i < types.length; i++) {
+    for (int i = 0; i < tokens.length; i++) {
       result += (i > 0) ? "," : "";
-      result += "{ " + types[i].toString() + " " + Token.getAttribute(types[i], attrs[i]) + " }";
+      result += "{ " + tokens[i].type.toString() + " " + tokens[i].getAttribute() + " }";
     }
     result += "encountered {" + mT.type.toString() + " " + mT.getAttribute();
     return result;
   }
 
-  private void sync(Token[] syncSet) {
-    while (mT != null && !inSet(syncSet)) {
+  private void sync() {
+    while (mT != null && !inSet(mSet)) {
       mT = mL.getNextToken();
     }
   }
 
   private boolean inSet(Token[] syncSet) {
     for (Token s : syncSet) {
-      if (mT.type == s.type) {
-        // if one of these types, have to compare attributes as well
-        if (mT.type == Type.RESWRD || mT.type == Type.RELOP || mT.type == Type.ADDOP
-            || mT.type == Type.MULOP) {
-          if (((int) mT.attribute) == ((int) s.attribute)) {
-            return true;
-          }
-        } else {
-          return true;
-        }
-      }
+      if (mT.fullTypeMatch(s))
+        return true;
     }
     return false;
   }
 
   void program() {
+    mSet = new Token[] {};
+
     try {
       switch (mT.type) {
         case RESWRD:
@@ -96,7 +104,13 @@ public class Parser {
           }
           break;
       }
+
+      Token[] toks = {pair(Type.RESWRD, ResWordAttr.PROGRAM)};
+      wanted(toks);
+      sync();
+
     } catch (ParErr e) {
+      sync();
     }
   }
 

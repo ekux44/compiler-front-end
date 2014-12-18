@@ -18,10 +18,6 @@ public class Token implements Cloneable {
     this(t, (Object) attr, lex, pos);
   }
 
-  public Token pair(Type t, Enum attr) {
-    return new Token(t, attr.ordinal(), null, null);
-  }
-
   private Token(Type t, Object attr, String lex, SourcePointer pos) {
     type = t;
     attribute = attr;
@@ -37,24 +33,34 @@ public class Token implements Cloneable {
     return new Token(type, attribute, lexeme, position.clone());
   }
 
-  public static String getAttribute(Type t, Object attr) {
-    switch (t) {
+  public String getAttribute() {
+    switch (type) {
       case RESWRD:
-        return ResWordAttr.values()[(int) attr].toString();
+        return ResWordAttr.values()[(int) attribute].toString();
       case RELOP:
-        return RelopAttr.values()[(int) attr].toString();
+        return RelopAttr.values()[(int) attribute].toString();
       case ADDOP:
-        return AddopAttr.values()[(int) attr].toString();
+        return AddopAttr.values()[(int) attribute].toString();
       case MULOP:
-        return MulopAttr.values()[(int) attr].toString();
+        return MulopAttr.values()[(int) attribute].toString();
     }
-    if (attr != null)
-      return attr.toString();
+    if (attribute != null)
+      return attribute.toString();
     return "NULL";
   }
 
-  public String getAttribute() {
-    return Token.getAttribute(type, attribute);
+  public boolean fullTypeMatch(Token other) {
+    if (type == other.type) {
+      // if one of these types, have to compare attributes as well
+      if (type == Type.RESWRD || type == Type.RELOP || type == Type.ADDOP || type == Type.MULOP) {
+        if (((int) attribute) == ((int) other.attribute)) {
+          return true;
+        }
+      } else {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static enum Type {
