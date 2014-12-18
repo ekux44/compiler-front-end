@@ -64,7 +64,7 @@ public class Parser {
       result += (i > 0) ? "," : "";
       result += "{ " + tokens[i].type.toString() + " " + tokens[i].getAttribute() + " }";
     }
-    result += "encountered { " + mT.type.toString() + " " + mT.getAttribute()+" }";
+    result += "encountered { " + mT.type.toString() + " " + mT.getAttribute() + " }";
     return result;
   }
 
@@ -260,6 +260,7 @@ public class Parser {
               match(Type.COLON, null);
               type();
               match(Type.SEMICOLON, null);
+              declarationsTail();
               return;
             case PROC:
               return;
