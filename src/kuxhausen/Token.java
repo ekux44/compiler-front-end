@@ -25,10 +25,6 @@ public class Token implements Cloneable {
     position = (pos != null) ? pos.clone() : null;
   }
 
-  public static Token syntaxErr(String message, String lexeme, SourcePointer pos) {
-    return new Token(Type.SYNTAXERR, message, lexeme, pos);
-  }
-
   public Token clone() {
     return new Token(type, attribute, lexeme, position.clone());
   }
@@ -68,7 +64,7 @@ public class Token implements Cloneable {
   }
 
   public static enum Type {
-    RESWRD, ID, EOF, NUM, RELOP, ADDOP, MULOP, LEXERR, SYNTAXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, COLON, OPENBRACKET, DOTDOT, CLOSEBRACKET, ASSIGNOP,
+    RESWRD, ID, EOF, NUM, RELOP, ADDOP, MULOP, LEXERR, SYNTAXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, COLON, OPENBRACKET, DOTDOT, CLOSEBRACKET, ASSIGNOP, $
   }
 
   public static enum ResWordAttr {

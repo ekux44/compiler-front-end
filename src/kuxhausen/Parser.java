@@ -17,6 +17,7 @@ public class Parser {
    * current Token
    */
   private Token mT;
+  private SourcePointer mLine;
 
   /**
    * sync set for the current nonTerminal
@@ -27,8 +28,19 @@ public class Parser {
 
   Parser(Lexar lex) {
     mL = lex;
-    mT = mL.getNextToken();
+    consumeToken();
     program();
+  }
+
+  private void consumeToken() {
+    Token next = mL.getNextToken();
+
+    if (next == null) {
+      next = new Token(Type.$, null, null, mLine);
+    }
+    mT = next;
+    mTokens.add(next);
+    mLine = next.position;
   }
 
   public ArrayList<Token> getTokenList() {
@@ -44,8 +56,8 @@ public class Parser {
 
   public void match(Type type, Enum attr) throws ParErr {
     Token desired = pair(type, attr);
-    if (mT != null && mT.fullTypeMatch(desired)) {
-      mT = mL.getNextToken();
+    if (mT.fullTypeMatch(desired)) {
+      consumeToken();
     } else {
       Token[] toks = {pair(type, attr)};
       wanted(toks);
@@ -55,7 +67,7 @@ public class Parser {
 
   private void wanted(Token[] wanted) {
     String message = generateErrorMessage(wanted);
-    mTokens.add(Token.syntaxErr(message, mT.lexeme, mT.position));
+    mTokens.add(new Token(Type.SYNTAXERR, message, mT.lexeme, mT.position));
   }
 
   private String generateErrorMessage(Token[] tokens) {
@@ -69,8 +81,8 @@ public class Parser {
   }
 
   private void sync() {
-    while (mT != null && !inSet(mSet)) {
-      mT = mL.getNextToken();
+    while (mT.type != Type.$ && !inSet(mSet)) {
+      consumeToken();
     }
   }
 

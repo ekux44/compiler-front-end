@@ -22,6 +22,8 @@ public class Utils {
       }
       if (t.type == Type.LEXERR)
         output.println("LEXERR: " + t.attribute);
+      if (t.type == Type.SYNTAXERR)
+        output.println("SYNTAXERR: " + t.attribute);
     }
     output.close();
   }
@@ -36,8 +38,10 @@ public class Utils {
     String formatting = "%-10s%-20s%-20s%-10s";
     output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
-      output.println(String.format(formatting, (t.position.lineNum + 1), t.lexeme,
-          t.type.toString(), t.getAttribute()));
+      if (t.type != Type.$) {
+        output.println(String.format(formatting, (t.position.lineNum + 1), t.lexeme,
+            t.type.toString(), t.getAttribute()));
+      }
     }
     output.close();
   }
