@@ -16,8 +16,9 @@ public class Project1 {
           if (l.getNextToken() == null)
             break;
         }
-        l.writeListingFile("output/" + filename + ".listing");
-        l.writeTokenFile("output/" + filename + ".token");
+        Utils.writeListingFile("output/" + filename + ".listing", l.getTokenList(),
+            l.getSourceBuffer());
+        Utils.writeTokenFile("output/" + filename + ".token", l.getTokenList());
 
       }
     }

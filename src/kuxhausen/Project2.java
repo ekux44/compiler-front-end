@@ -13,8 +13,9 @@ public class Project2 {
         Lexar l = new Lexar(file);
         Parser p = new Parser(l);
 
-        p.writeListingFile("output/" + filename + ".listing");
-        p.writeTokenFile("output/" + filename + ".token");
+        Utils.writeListingFile("output/" + filename + ".listing", p.getTokenList(),
+            l.getSourceBuffer());
+        Utils.writeTokenFile("output/" + filename + ".token", p.getTokenList());
 
       }
     }

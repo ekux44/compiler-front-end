@@ -29,14 +29,8 @@ public class Parser {
     program();
   }
 
-  public void writeListingFile(String string) {
-    // TODO Auto-generated method stub
-
-  }
-
-  public void writeTokenFile(String string) {
-    // TODO Auto-generated method stub
-
+  public ArrayList<Token> getTokenList() {
+    return mTokens;
   }
 
   private class ParErr extends Exception {
@@ -48,7 +42,7 @@ public class Parser {
 
   public void match(Type type, Enum attr) throws ParErr {
     Token desired = pair(type, attr);
-    if (mT!=null && mT.fullTypeMatch(desired)) {
+    if (mT != null && mT.fullTypeMatch(desired)) {
       mT = mL.getNextToken();
     } else {
       Token[] toks = {pair(type, attr)};

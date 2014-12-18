@@ -391,38 +391,11 @@ public class Lexar {
     }
   }
 
-  public void writeListingFile(String string) {
-    PrintWriter output = null;
-    try {
-      output = new PrintWriter(string);
-    } catch (FileNotFoundException e) {
-    }
-
-    int lineNo = -1;
-    for (Token t : tokens) {
-      while (t.position.lineNum > lineNo) {
-        lineNo++;
-        output.print(String.format("%-8s", "" + lineNo) + source.getLine(lineNo));
-      }
-      if (t.type == Type.LEXERR)
-        output.println("LEXERR: " + t.attribute);
-    }
-    output.close();
+  public ArrayList<Token> getTokenList() {
+    return tokens;
   }
 
-  public void writeTokenFile(String string) {
-    PrintWriter output = null;
-    try {
-      output = new PrintWriter(string);
-    } catch (FileNotFoundException e) {
-    }
-
-    String formatting = "%-10s%-20s%-20s%-10s";
-    output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
-    for (Token t : tokens) {
-      output.println(String.format(formatting, t.position.lineNum, t.lexeme, t.type.toString(),
-          t.getAttribute()));
-    }
-    output.close();
+  public SourceBuffer getSourceBuffer() {
+    return source;
   }
 }
