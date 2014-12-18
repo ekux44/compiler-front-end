@@ -1,4 +1,5 @@
 package kuxhausen;
+
 /**
  * @author Eric Kuxhausen
  */
@@ -48,7 +49,7 @@ public class Token implements Cloneable {
     return "NULL";
   }
 
-  public String getAttributes() {
+  public String getAttribute() {
     return Token.getAttribute(type, attribute);
   }
 

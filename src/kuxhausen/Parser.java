@@ -1,4 +1,5 @@
 package kuxhausen;
+
 import java.util.ArrayList;
 
 import kuxhausen.Token.*;
@@ -52,7 +53,7 @@ public class Parser {
       result += (i > 0) ? "," : "";
       result += "{ " + types[i].toString() + " " + Token.getAttribute(types[i], attrs[i]) + " }";
     }
-    result += "encountered {" + t.type.toString() + " " + t.getAttributes();
+    result += "encountered {" + t.type.toString() + " " + t.getAttribute();
     return result;
   }
 
