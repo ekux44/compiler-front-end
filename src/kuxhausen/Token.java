@@ -22,11 +22,11 @@ public class Token implements Cloneable {
     type = t;
     attribute = attr;
     lexeme = lex;
-    position = pos.clone();
+    position = (pos != null) ? pos.clone() : null;
   }
 
-  public static Token syntaxErr(String message, SourcePointer pos) {
-    return new Token(Type.SYNTAXERR, message, null, pos);
+  public static Token syntaxErr(String message, String lexeme, SourcePointer pos) {
+    return new Token(Type.SYNTAXERR, message, lexeme, pos);
   }
 
   public Token clone() {

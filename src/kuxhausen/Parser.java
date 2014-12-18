@@ -37,7 +37,7 @@ public class Parser {
   }
 
   Token pair(Type type, Enum attr) {
-    return new Token(type, (attr != null) ? attr.ordinal() : null, null, null);
+    return new Token(type, (attr != null) ? attr.ordinal() : -1, null, null);
   }
 
   public void match(Type type, Enum attr) throws ParErr {
@@ -53,7 +53,7 @@ public class Parser {
 
   private void wanted(Token[] wanted) {
     String message = generateErrorMessage(wanted);
-    mTokens.add(Token.syntaxErr(message, mT.position));
+    mTokens.add(Token.syntaxErr(message, mT.lexeme, mT.position));
   }
 
   private String generateErrorMessage(Token[] tokens) {
