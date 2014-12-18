@@ -109,63 +109,424 @@ public class Parser {
   }
 
   void programTail() {
+    mSet = new Token[] {};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case VAR:
+              declarations();
+              programTailTail();
+              return;
+            case PROC:
+              subprogramDeclarations();
+              compoundStatement();
+              match(Type.EOF, null);
+              return;
+            case BEGIN:
+              compoundStatement();
+              match(Type.EOF, null);
+              return;
+          }
+          break;
+      }
+
+      Token[] toks =
+          {pair(Type.RESWRD, ResWordAttr.VAR), pair(Type.RESWRD, ResWordAttr.PROC),
+              pair(Type.RESWRD, ResWordAttr.BEGIN)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void programTailTail() {
+    mSet = new Token[] {};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case PROC:
+              subprogramDeclarations();
+              compoundStatement();
+              match(Type.EOF, null);
+              return;
+            case BEGIN:
+              compoundStatement();
+              match(Type.EOF, null);
+              return;
+          }
+          break;
+      }
+
+      Token[] toks = {pair(Type.RESWRD, ResWordAttr.PROC), pair(Type.RESWRD, ResWordAttr.BEGIN)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void identifierList() {
+    mSet = new Token[] {pair(Type.CLOSEPAREN, null)};
 
+    try {
+      switch (mT.type) {
+        case ID:
+          match(Type.ID, null);
+          identifierListTail();
+          return;
+      }
+
+      Token[] toks = {pair(Type.ID, null)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void identifierListTail() {
+    mSet = new Token[] {pair(Type.CLOSEPAREN, null)};
 
+    try {
+      switch (mT.type) {
+        case CLOSEPAREN:
+          return;
+        case COMMA:
+          match(Type.COMMA, null);
+          match(Type.ID, null);
+          identifierListTail();
+          return;
+      }
+
+      Token[] toks = {pair(Type.CLOSEPAREN, null), pair(Type.COMMA, null)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void declarations() {
+    mSet = new Token[] {pair(Type.RESWRD, ResWordAttr.PROC), pair(Type.RESWRD, ResWordAttr.BEGIN)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case VAR:
+              match(Type.RESWRD, ResWordAttr.VAR);
+              match(Type.ID, null);
+              match(Type.COLON, null);
+              type();
+              match(Type.SEMICOLON, null);
+              declarationsTail();
+              return;
+          }
+          break;
+
+      }
+
+      Token[] toks = {pair(Type.RESWRD, ResWordAttr.VAR)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void declarationsTail() {
+    mSet = new Token[] {pair(Type.RESWRD, ResWordAttr.PROC), pair(Type.RESWRD, ResWordAttr.BEGIN)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case VAR:
+              match(Type.RESWRD, ResWordAttr.VAR);
+              match(Type.ID, null);
+              match(Type.COLON, null);
+              type();
+              match(Type.SEMICOLON, null);
+              return;
+            case PROC:
+              return;
+            case BEGIN:
+              return;
+          }
+          break;
+      }
+
+      Token[] toks =
+          {pair(Type.RESWRD, ResWordAttr.VAR), pair(Type.RESWRD, ResWordAttr.PROC),
+              pair(Type.RESWRD, ResWordAttr.BEGIN)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void type() {
+    mSet = new Token[] {pair(Type.SEMICOLON, null), pair(Type.CLOSEPAREN, null)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case ARRAY:
+              match(Type.RESWRD, ResWordAttr.ARRAY);
+              match(Type.OPENBRACKET, null);
+              match(Type.NUM, null);
+              match(Type.DOTDOT, null);
+              match(Type.NUM, null);
+              match(Type.RESWRD, ResWordAttr.OF);
+              standardType();
+              return;
+            case INT_NAME:
+              standardType();
+              return;
+            case REAL_NAME:
+              standardType();
+              return;
+          }
+          break;
+      }
+
+      Token[] toks =
+          {pair(Type.RESWRD, ResWordAttr.ARRAY), pair(Type.RESWRD, ResWordAttr.INT_NAME),
+              pair(Type.RESWRD, ResWordAttr.REAL_NAME)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void standardType() {
+    mSet = new Token[] {pair(Type.SEMICOLON, null), pair(Type.CLOSEPAREN, null)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case INT_NAME:
+              match(Type.RESWRD, ResWordAttr.INT_NAME);
+              return;
+            case REAL_NAME:
+              match(Type.RESWRD, ResWordAttr.REAL_NAME);
+              return;
+          }
+          break;
+      }
+
+      Token[] toks =
+          {pair(Type.RESWRD, ResWordAttr.INT_NAME), pair(Type.RESWRD, ResWordAttr.REAL_NAME)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void subprogramDeclarations() {
+    mSet = new Token[] {pair(Type.RESWRD, ResWordAttr.BEGIN)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case PROC:
+              subprogramDeclaration();
+              match(Type.SEMICOLON, null);
+              subprogramDeclarationsTail();
+              return;
+          }
+          break;
+      }
+
+      Token[] toks = {pair(Type.RESWRD, ResWordAttr.PROC)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void subprogramDeclarationsTail() {
+    mSet = new Token[] {pair(Type.RESWRD, ResWordAttr.BEGIN)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case PROC:
+              subprogramDeclaration();
+              match(Type.SEMICOLON, null);
+              subprogramDeclarationsTail();
+              return;
+            case BEGIN:
+              return;
+          }
+          break;
+      }
+
+      Token[] toks = {pair(Type.RESWRD, ResWordAttr.PROC), pair(Type.RESWRD, ResWordAttr.BEGIN)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void subprogramDeclaration() {
+    mSet = new Token[] {pair(Type.SEMICOLON, null)};
 
+    // try {
+    switch (mT.type) {
+      case RESWRD:
+        switch (ResWordAttr.values()[(int) mT.attribute]) {
+          case PROC:
+            subprogramHead();
+            subprogramDeclarationTail();
+            return;
+        }
+        break;
+    }
+
+    Token[] toks = {pair(Type.RESWRD, ResWordAttr.PROC)};
+    wanted(toks);
+    sync();
+
+    /*
+     * Unreachable } catch (ParErr e) { sync(); }
+     */
   }
 
   void subprogramDeclarationTail() {
+    mSet = new Token[] {pair(Type.SEMICOLON, null)};
 
+    // try {
+    switch (mT.type) {
+      case RESWRD:
+        switch (ResWordAttr.values()[(int) mT.attribute]) {
+          case VAR:
+            declarations();
+            subprogramDeclarationTailTail();
+            return;
+          case PROC:
+            subprogramDeclarations();
+            compoundStatement();
+            return;
+          case BEGIN:
+            compoundStatement();
+            return;
+        }
+        break;
+    }
+
+    Token[] toks =
+        {pair(Type.RESWRD, ResWordAttr.VAR), pair(Type.RESWRD, ResWordAttr.PROC),
+            pair(Type.RESWRD, ResWordAttr.BEGIN)};
+    wanted(toks);
+    sync();
+
+    /*
+     * Unreachable } catch (ParErr e) { sync(); }
+     */
   }
 
   void subprogramDeclarationTailTail() {
+    mSet = new Token[] {pair(Type.SEMICOLON, null)};
 
+    // try {
+    switch (mT.type) {
+      case RESWRD:
+        switch (ResWordAttr.values()[(int) mT.attribute]) {
+          case PROC:
+            subprogramDeclarations();
+            compoundStatement();
+            return;
+          case BEGIN:
+            compoundStatement();
+            return;
+        }
+        break;
+    }
+
+    Token[] toks = {pair(Type.RESWRD, ResWordAttr.PROC), pair(Type.RESWRD, ResWordAttr.BEGIN)};
+    wanted(toks);
+    sync();
+
+    /*
+     * Unreachable } catch (ParErr e) { sync(); }
+     */
   }
 
   void subprogramHead() {
+    mSet =
+        new Token[] {pair(Type.RESWRD, ResWordAttr.VAR), pair(Type.RESWRD, ResWordAttr.PROC),
+            pair(Type.RESWRD, ResWordAttr.BEGIN)};
 
+    try {
+      switch (mT.type) {
+        case RESWRD:
+          switch (ResWordAttr.values()[(int) mT.attribute]) {
+            case PROC:
+              match(Type.RESWRD, ResWordAttr.PROC);
+              match(Type.ID, null);
+              subprogramHeadTail();
+              return;
+          }
+          break;
+      }
+
+      Token[] toks = {pair(Type.RESWRD, ResWordAttr.PROC)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void subprogramHeadTail() {
+    mSet =
+        new Token[] {pair(Type.RESWRD, ResWordAttr.VAR), pair(Type.RESWRD, ResWordAttr.PROC),
+            pair(Type.RESWRD, ResWordAttr.BEGIN)};
 
+    try {
+      switch (mT.type) {
+        case OPENPAREN:
+          arguments();
+          match(Type.SEMICOLON, null);
+          return;
+        case SEMICOLON:
+          match(Type.SEMICOLON, null);
+          return;
+      }
+
+      Token[] toks = {pair(Type.OPENPAREN, null), pair(Type.SEMICOLON, null)};
+      wanted(toks);
+      sync();
+
+    } catch (ParErr e) {
+      sync();
+    }
   }
 
   void arguments() {
