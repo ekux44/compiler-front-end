@@ -35,7 +35,7 @@ public class Utils {
     } catch (FileNotFoundException e) {
     }
 
-    String formatting = "%-10s%-20s%-20s%-10s";
+    String formatting = "%-9s%-17s%-13s%-10s";
     output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
       if (t.type != TokType.$) {
