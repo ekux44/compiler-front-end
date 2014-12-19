@@ -29,6 +29,16 @@ public class Token implements Cloneable {
     return new Token(type, attribute, lexeme, position.clone());
   }
 
+  public PasType getNumType() {
+    if (type == TokType.NUM) {
+      if (lexeme.contains("."))
+        return PasType.REAL;
+      else
+        return PasType.INT;
+    }
+    return PasType.ERR;
+  }
+
   public String getAttribute() {
     if (attribute != null) {
       if (attribute instanceof Integer && (int) attribute != -1) {
@@ -52,9 +62,10 @@ public class Token implements Cloneable {
   public boolean fullTypeMatch(Token other) {
     if (type == other.type) {
       // if one of these types, have to compare attributes as well
-      if (type == TokType.RESWRD || type == TokType.RELOP || type == TokType.ADDOP || type == TokType.MULOP) {
-        //unless the attribute wasn't specified, in which case it's a wildcard
-        if((int)attribute==-1 || (int)other.attribute==-1){
+      if (type == TokType.RESWRD || type == TokType.RELOP || type == TokType.ADDOP
+          || type == TokType.MULOP) {
+        // unless the attribute wasn't specified, in which case it's a wildcard
+        if ((int) attribute == -1 || (int) other.attribute == -1) {
           return true;
         }
         if (((int) attribute) == ((int) other.attribute)) {
@@ -86,5 +97,4 @@ public class Token implements Cloneable {
   public static enum MulopAttr {
     TIMES, SLASH, DIV, MOD, AND
   }
-
 }

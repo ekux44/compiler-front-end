@@ -1,15 +1,14 @@
 package kuxhausen;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 
-import kuxhausen.Token.ResWordAttr;
-import kuxhausen.Token.TokType;
 import kuxhausen.Token.*;
 
 /**
  * @author Eric Kuxhausen
  */
-public class Parser {
+public class DecoratedParser {
 
   private Lexar mL;
 
@@ -17,6 +16,7 @@ public class Parser {
    * current Token
    */
   private Token mT;
+  private Token mConsumed;
   private SourcePointer mLine;
 
   /**
@@ -26,13 +26,21 @@ public class Parser {
 
   private ArrayList<Token> mTokens = new ArrayList<Token>();
 
-  Parser(Lexar lex) {
+  private ArrayDeque<GreenNode> mScope = new ArrayDeque<GreenNode>();
+  {
+    GreenNode invisibleRoot = new GreenNode();
+    invisibleRoot.setName("");
+    mScope.add(invisibleRoot);
+  }
+
+  DecoratedParser(Lexar lex) {
     mL = lex;
     consumeToken();
     program();
   }
 
   private void consumeToken() {
+    mConsumed = mT;
     Token next = mL.getNextToken();
 
     if (next == null) {
@@ -92,6 +100,82 @@ public class Parser {
         return true;
     }
     return false;
+  }
+
+  public void checkAddGreen(String name) {
+    GreenNode green = new GreenNode();
+    green.setName(name);
+
+    boolean hasConflict = false;
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof GreenNode && n.getName().equals(name)) {
+          hasConflict = true;
+        }
+      }
+    }
+    if (hasConflict) {
+      mTokens.add(new Token(TokType.SEMANTICERR, "A program or procedure named " + green.getName()
+          + " already defined in this scope", name, mLine));
+      // go ahead and add node anyway with modified name so that subtree can be typechecked
+      green.setName(green.getName() + "#");
+    }
+    mScope.addFirst(green);
+  }
+
+  public void checkAddBlue(String name, PasType type) {
+    boolean hasConflict = false;
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof BlueNode && n.getName().equals(name)) {
+          hasConflict = true;
+        }
+      }
+    }
+    if (hasConflict) {
+      mTokens.add(new Token(TokType.SEMANTICERR, "A var or proc_param named " + name
+          + " already defined in this scope", name, mLine));
+    } else {
+      BlueNode b = new BlueNode();
+      b.setName(name);
+      b.setType(type);
+      mScope.getFirst().getChildren().add(b);
+    }
+  }
+
+  public void checkGreen(String name) {
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof GreenNode && n.getName().equals(name)) {
+          return;
+        }
+      }
+    }
+    mTokens.add(new Token(TokType.SEMANTICERR, "No program or procedured named " + name
+        + " defined yet in this scope", name, mLine));
+  }
+
+  public PasType checkBlue(String name) {
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof BlueNode && n.getName().equals(name)) {
+          return ((BlueNode) n).getType();
+        }
+      }
+    }
+    mTokens.add(new Token(TokType.SEMANTICERR, "No var or proc_param named " + name
+        + " defined yet in this scope", name, mLine));
+    return PasType.ERR;
+  }
+
+  public void exitScope() {
+    mScope.removeFirst();
+  }
+
+  public PasType reportErrStar(String msg) {
+    Token t = new Token(TokType.SEMANTICERR, msg, "", mLine);
+    mTokens.add(t);
+    return PasType.ERR;
   }
 
   void program() {
@@ -1272,7 +1356,7 @@ public class Parser {
     }
   }
 
-  void term() {
+  PasType term() {
     mSet =
         new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
             pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
@@ -1285,9 +1369,8 @@ public class Parser {
       case RESWRD:
         switch (ResWordAttr.values()[(int) mT.attribute]) {
           case NOT:
-            factor();
-            termTail();
-            return;
+            PasType fact = factor();
+            return termTail(fact);
         }
         break;
       case OPENPAREN:
@@ -1315,7 +1398,7 @@ public class Parser {
      */
   }
 
-  void termTail() {
+  PasType termTail(PasType i) {
     mSet =
         new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
             pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
@@ -1370,7 +1453,7 @@ public class Parser {
     }
   }
 
-  void factor() {
+  PasType factor() {
     mSet =
         new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
             pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
@@ -1384,22 +1467,57 @@ public class Parser {
           switch (ResWordAttr.values()[(int) mT.attribute]) {
             case NOT:
               match(TokType.RESWRD, ResWordAttr.NOT);
-              factor();
-              return;
+              PasType fOne = factor();
+              switch(fOne){
+                case BOOL: return PasType.BOOL;
+                case ERR: return PasType.ERR;
+                default: return reportErrStar("Attempted to use nonBoolean type as Boolean");
+              }
           }
           break;
         case OPENPAREN:
           match(TokType.OPENPAREN, null);
-          expression();
+          PasType eType = expression();
           match(TokType.CLOSEPAREN, null);
-          return;
+          return eType;
         case ID:
           match(TokType.ID, null);
-          factorTail();
-          return;
+          PasType idType = checkBlue(mConsumed.getAttribute());
+          PasType fTail = factorTail();
+          if (fTail == PasType.ERR || idType == PasType.ERR)
+            return PasType.ERR;
+          if (fTail == PasType.INT) {
+            switch (idType) {
+              case AINT:
+                return PasType.INT;
+              case PPAINT:
+                return PasType.INT;
+              case AREAL:
+                return PasType.REAL;
+              case PPAREAL:
+                return PasType.REAL;
+              default:
+                return reportErrStar("Array type expected, " + idType.toString() + " recieved");
+            }
+          } else if (fTail == PasType.NULL) {
+            switch (idType) {
+              case INT:
+                return PasType.INT;
+              case PPINT:
+                return PasType.INT;
+              case REAL:
+                return PasType.REAL;
+              case PPREAL:
+                return PasType.REAL;
+              default:
+                return reportErrStar("Numeric type expected, " + idType.toString() + " recieved");
+            }
+          } else {
+            return reportErrStar("Invalid array index type, " + idType.toString() + " recieved");
+          }
         case NUM:
           match(TokType.NUM, null);
-          return;
+          return mConsumed.getNumType();
       }
 
       Token[] toks =
@@ -1413,7 +1531,7 @@ public class Parser {
     }
   }
 
-  void factorTail() {
+  PasType factorTail() {
     mSet =
         new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
             pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
@@ -1426,34 +1544,34 @@ public class Parser {
         case RESWRD:
           switch (ResWordAttr.values()[(int) mT.attribute]) {
             case END:
-              return;
+              return PasType.NULL;
             case THEN:
-              return;
+              return PasType.NULL;
             case ELSE:
-              return;
+              return PasType.NULL;
             case DO:
-              return;
+              return PasType.NULL;
           }
           break;
         case CLOSEPAREN:
-          return;
+          return PasType.NULL;
         case SEMICOLON:
-          return;
+          return PasType.NULL;
         case COMMA:
-          return;
+          return PasType.NULL;
         case CLOSEBRACKET:
-          return;
+          return PasType.NULL;
         case RELOP:
-          return;
+          return PasType.NULL;
         case ADDOP:
-          return;
+          return PasType.NULL;
         case MULOP:
-          return;
+          return PasType.NULL;
         case OPENBRACKET:
           match(TokType.OPENBRACKET, null);
-          expression();
+          PasType exp = expression();
           match(TokType.CLOSEBRACKET, null);
-          return;
+          return exp;
       }
 
       Token[] toks =
