@@ -2,6 +2,7 @@ package kuxhausen;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.List;
 
 import kuxhausen.Token.*;
 
@@ -153,6 +154,37 @@ public class DecoratedParser {
     }
     mTokens.add(new Token(TokType.SEMANTICERR, "No program or procedured named " + name
         + " defined yet in this scope", name, mLine));
+  }
+
+  public List<BlueNode> getPPs(String name) {
+    ArrayList<BlueNode> result = new ArrayList<BlueNode>();
+    GreenNode parrent = null;
+    for (GreenNode g : mScope) {
+      if (g.getName().equals(name)) {
+        parrent = g;
+      }
+    }
+    if (parrent != null) {
+      for (Node n : parrent.getChildren()) {
+        if (n instanceof BlueNode) {
+          switch (((BlueNode) n).getType()) {
+            case PPAINT:
+              result.add((BlueNode) n);
+              break;
+            case PPAREAL:
+              result.add((BlueNode) n);
+              break;
+            case PPINT:
+              result.add((BlueNode) n);
+              break;
+            case PPREAL:
+              result.add((BlueNode) n);
+              break;
+          }
+        }
+      }
+    }
+    return result;
   }
 
   public PasType checkBlue(String name) {
@@ -1019,7 +1051,13 @@ public class DecoratedParser {
             case CALL:
               match(TokType.RESWRD, ResWordAttr.CALL);
               match(TokType.ID, null);
-              procedureStatementTail();
+              Token id = mConsumed;
+              checkGreen(id.lexeme);
+              int numDesired = getPPs(id.lexeme).size();
+              int numSeen = procedureStatementTail(new PPPair(id.lexeme, 0));
+              if (numDesired != numSeen)
+                reportErrStar("procedure " + id.lexeme + " called with " + numSeen
+                    + " params, yet expected " + numDesired);
               return;
           }
           break;
@@ -1034,7 +1072,7 @@ public class DecoratedParser {
     }
   }
 
-  void procedureStatementTail() {
+  int procedureStatementTail(PPPair i) {
     mSet =
         new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
             pair(TokType.RESWRD, ResWordAttr.ELSE)};
@@ -1044,18 +1082,18 @@ public class DecoratedParser {
         case RESWRD:
           switch (ResWordAttr.values()[(int) mT.attribute]) {
             case END:
-              return;
+              return 0;
             case ELSE:
-              return;
+              return 0;
           }
           break;
         case OPENPAREN:
           match(TokType.OPENPAREN, null);
-          expressionList();
+          int listNum = expressionList(i);
           match(TokType.CLOSEPAREN, null);
-          return;
+          return listNum;
         case SEMICOLON:
-          return;
+          return 0;
       }
 
       Token[] toks =
@@ -1067,9 +1105,11 @@ public class DecoratedParser {
     } catch (SyntaxErr e) {
       sync();
     }
+
+    return 0;
   }
 
-  void expressionList() {
+  int expressionList(PPPair i) {
     mSet = new Token[] {pair(TokType.CLOSEPAREN, null)};
 
     // try {
@@ -1077,35 +1117,59 @@ public class DecoratedParser {
       case RESWRD:
         switch (ResWordAttr.values()[(int) mT.attribute]) {
           case NOT:
-            expression();
-            expressionListTail();
-            return;
+            PasType exp1 = expression();
+            if (getPPs(i.procName).size() >= i.paramNum)
+              reportErrStar("Unexpected procedure param of type" + exp1.toString());
+            else if (getPPs(i.procName).get(i.paramNum).getType() != exp1)
+              reportErrStar("Incorrect procedure param type: got " + exp1 + ", expected "
+                  + getPPs(i.procName).get(i.paramNum).getType());
+            return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
         }
         break;
       case OPENPAREN:
-        expression();
-        expressionListTail();
-        return;
+        PasType exp2 = expression();
+        if (getPPs(i.procName).size() >= i.paramNum)
+          reportErrStar("Unexpected procedure param of type" + exp2.toString());
+        else if (getPPs(i.procName).get(i.paramNum).getType() != exp2)
+          reportErrStar("Incorrect procedure param type: got " + exp2 + ", expected "
+              + getPPs(i.procName).get(i.paramNum).getType());
+        return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
       case ADDOP:
         switch (AddopAttr.values()[(int) mT.attribute]) {
           case PLUS:
-            expression();
-            expressionListTail();
-            return;
+            PasType exp3 = expression();
+            if (getPPs(i.procName).size() >= i.paramNum)
+              reportErrStar("Unexpected procedure param of type" + exp3.toString());
+            else if (getPPs(i.procName).get(i.paramNum).getType() != exp3)
+              reportErrStar("Incorrect procedure param type: got " + exp3 + ", expected "
+                  + getPPs(i.procName).get(i.paramNum).getType());
+            return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
           case MINUS:
-            expression();
-            expressionListTail();
-            return;
+            PasType exp4 = expression();
+            if (getPPs(i.procName).size() >= i.paramNum)
+              reportErrStar("Unexpected procedure param of type" + exp4.toString());
+            else if (getPPs(i.procName).get(i.paramNum).getType() != exp4)
+              reportErrStar("Incorrect procedure param type: got " + exp4 + ", expected "
+                  + getPPs(i.procName).get(i.paramNum).getType());
+            return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
         }
         break;
       case ID:
-        expression();
-        expressionListTail();
-        return;
+        PasType exp5 = expression();
+        if (getPPs(i.procName).size() >= i.paramNum)
+          reportErrStar("Unexpected procedure param of type" + exp5.toString());
+        else if (getPPs(i.procName).get(i.paramNum).getType() != exp5)
+          reportErrStar("Incorrect procedure param type: got " + exp5 + ", expected "
+              + getPPs(i.procName).get(i.paramNum).getType());
+        return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
       case NUM:
-        expression();
-        expressionListTail();
-        return;
+        PasType exp6 = expression();
+        if (getPPs(i.procName).size() >= i.paramNum)
+          reportErrStar("Unexpected procedure param of type" + exp6.toString());
+        else if (getPPs(i.procName).get(i.paramNum).getType() != exp6)
+          reportErrStar("Incorrect procedure param type: got " + exp6 + ", expected "
+              + getPPs(i.procName).get(i.paramNum).getType());
+        return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
     }
 
     Token[] toks =
@@ -1118,20 +1182,26 @@ public class DecoratedParser {
     /*
      * Unreachable } catch (ParErr e) { sync(); }
      */
+    
+    return 0;
   }
 
-  void expressionListTail() {
+  int expressionListTail(PPPair i) {
     mSet = new Token[] {pair(TokType.CLOSEPAREN, null)};
 
     try {
       switch (mT.type) {
         case CLOSEPAREN:
-          return;
+          return i.paramNum;
         case COMMA:
           match(TokType.COMMA, null);
-          expression();
-          expressionListTail();
-          return;
+          PasType exp = expression();
+          if (getPPs(i.procName).size() >= i.paramNum)
+            reportErrStar("Unexpected procedure param of type" + exp.toString());
+          else if (getPPs(i.procName).get(i.paramNum).getType() != exp)
+            reportErrStar("Incorrect procedure param type: got " + exp + ", expected "
+                + getPPs(i.procName).get(i.paramNum).getType());
+          return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
       }
 
       Token[] toks = {pair(TokType.CLOSEPAREN, null), pair(TokType.COMMA, null)};
@@ -1141,6 +1211,8 @@ public class DecoratedParser {
     } catch (SyntaxErr e) {
       sync();
     }
+
+    return 0;
   }
 
   PasType expression() {
