@@ -28,6 +28,11 @@ public class Parser {
   private ArrayList<Token> mTokens = new ArrayList<Token>();
 
   private ArrayDeque<GreenNode> mScope = new ArrayDeque<GreenNode>();
+  {
+    GreenNode invisibleRoot = new GreenNode();
+    invisibleRoot.setName("");
+    mScope.add(invisibleRoot);
+  }
 
   Parser(Lexar lex) {
     mL = lex;
@@ -98,19 +103,72 @@ public class Parser {
   }
 
   public void checkAddGreen(String name) {
-    // TODO
+    GreenNode green = new GreenNode();
+    green.setName(name);
+
+    boolean hasConflict = false;
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof GreenNode && n.getName().equals(name)) {
+          hasConflict = true;
+        }
+      }
+    }
+    if (hasConflict) {
+      mTokens.add(new Token(TokType.SEMANTICERR, "A program or procedure named " + green.getName()
+          + " already defined in this scope", name, mLine));
+      // go ahead and add node anyway with modified name so that subtree can be typechecked
+      green.setName(green.getName() + "#");
+    }
+    mScope.addFirst(green);
   }
 
   public void checkAddBlue(String name, PasType type) {
-    // TODO
+    boolean hasConflict = false;
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof BlueNode && n.getName().equals(name)) {
+          hasConflict = true;
+        }
+      }
+    }
+    if (hasConflict) {
+      mTokens.add(new Token(TokType.SEMANTICERR, "A var or proc_param named " + name
+          + " already defined in this scope", name, mLine));
+    } else {
+      BlueNode b = new BlueNode();
+      b.setName(name);
+      b.setType(type);
+      mScope.getFirst().getChildren().add(b);
+    }
   }
 
   public void checkGreen(String name) {
-    // TODO
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof GreenNode && n.getName().equals(name)) {
+          return;
+        }
+      }
+    }
+    mTokens.add(new Token(TokType.SEMANTICERR, "No program or procedured named " + name
+        + " defined yet in this scope", name, mLine));
   }
 
   public void checkBlue(String name) {
-    // TODO
+    for (GreenNode g : mScope) {
+      for (Node n : g.getChildren()) {
+        if (n instanceof BlueNode && n.getName().equals(name)) {
+          return;
+        }
+      }
+    }
+    mTokens.add(new Token(TokType.SEMANTICERR, "No var or proc_param named " + name
+        + " defined yet in this scope", name, mLine));
+  }
+
+  public void exitScope() {
+    mScope.removeFirst();
   }
 
   void program() {
