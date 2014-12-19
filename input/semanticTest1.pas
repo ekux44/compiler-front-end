@@ -9,5 +9,5 @@ begin
 end ;
 begin
 	x := 5;
-	call gcd(x, y)
+	call gcd(x, 3.0)
 end .
