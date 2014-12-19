@@ -1,5 +1,7 @@
 package kuxhausen;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +35,21 @@ public class DecoratedParser {
     invisibleRoot.setName("");
     mScope.add(invisibleRoot);
   }
+  
+  private PrintWriter output;
 
-  DecoratedParser(Lexar lex) {
+  DecoratedParser(Lexar lex, String loc) {
+    try {
+      output = new PrintWriter(loc);
+    } catch (FileNotFoundException e) {
+    }
+    
     mL = lex;
     consumeToken();
     program();
+    exitScope();
+    
+    output.close();
   }
 
   private void consumeToken() {
@@ -123,6 +135,7 @@ public class DecoratedParser {
     }
     mScope.getFirst().getChildren().add(green);
     mScope.addFirst(green);
+    output.println("  NEW SCOPE: "+green.getName());
   }
 
   public void checkAddBlue(String name, PasType type) {
@@ -205,6 +218,7 @@ public class DecoratedParser {
 
   public void exitScope() {
     mScope.removeFirst();
+    output.println("  END SCOPE");
   }
 
   public PasType reportErrStar(String msg) {
@@ -214,7 +228,8 @@ public class DecoratedParser {
   }
 
   public void computeOffset(Token id, TypeWidth tw) {
-    // TODO
+    output.println(mScope.getFirst().scopeOffset+"  "+id.lexeme+"  "+tw.type.toString());
+    mScope.getFirst().scopeOffset +=tw.width;
   }
 
   void program() {
@@ -1236,7 +1251,7 @@ public class DecoratedParser {
         switch (ResWordAttr.values()[(int) mT.attribute]) {
           case NOT:
             PasType exp1 = expression();
-            if (getPPs(i.procName).size() >= i.paramNum)
+            if (getPPs(i.procName).size() <= i.paramNum)
               reportErrStar("Unexpected procedure param of type" + exp1.toString());
             else if (getPPs(i.procName).get(i.paramNum).getPPFreeType() != exp1)
               reportErrStar("Incorrect procedure param type: got " + exp1 + ", expected "
@@ -1246,7 +1261,7 @@ public class DecoratedParser {
         break;
       case OPENPAREN:
         PasType exp2 = expression();
-        if (getPPs(i.procName).size() >= i.paramNum)
+        if (getPPs(i.procName).size() <= i.paramNum)
           reportErrStar("Unexpected procedure param of type" + exp2.toString());
         else if (getPPs(i.procName).get(i.paramNum).getPPFreeType() != exp2)
           reportErrStar("Incorrect procedure param type: got " + exp2 + ", expected "
@@ -1256,7 +1271,7 @@ public class DecoratedParser {
         switch (AddopAttr.values()[(int) mT.attribute]) {
           case PLUS:
             PasType exp3 = expression();
-            if (getPPs(i.procName).size() >= i.paramNum)
+            if (getPPs(i.procName).size() <= i.paramNum)
               reportErrStar("Unexpected procedure param of type" + exp3.toString());
             else if (getPPs(i.procName).get(i.paramNum).getPPFreeType() != exp3)
               reportErrStar("Incorrect procedure param type: got " + exp3 + ", expected "
@@ -1264,7 +1279,7 @@ public class DecoratedParser {
             return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
           case MINUS:
             PasType exp4 = expression();
-            if (getPPs(i.procName).size() >= i.paramNum)
+            if (getPPs(i.procName).size() <= i.paramNum)
               reportErrStar("Unexpected procedure param of type" + exp4.toString());
             else if (getPPs(i.procName).get(i.paramNum).getPPFreeType() != exp4)
               reportErrStar("Incorrect procedure param type: got " + exp4 + ", expected "
@@ -1274,7 +1289,7 @@ public class DecoratedParser {
         break;
       case ID:
         PasType exp5 = expression();
-        if (getPPs(i.procName).size() >= i.paramNum)
+        if (getPPs(i.procName).size() <= i.paramNum)
           reportErrStar("Unexpected procedure param of type" + exp5.toString());
         else if (getPPs(i.procName).get(i.paramNum).getPPFreeType() != exp5)
           reportErrStar("Incorrect procedure param type: got " + exp5 + ", expected "

@@ -11,7 +11,7 @@ public class Project34 {
       Scanner file = Lexar.getFile("input/" + filename + ".pas");
       if (file != null) {
         Lexar l = new Lexar(file);
-        DecoratedParser p = new DecoratedParser(l);
+        DecoratedParser p = new DecoratedParser(l, ("output/" + filename + ".loc"));
 
         Utils.writeListingFile("output/" + filename + ".listing", p.getTokenList(),
             l.getSourceBuffer());

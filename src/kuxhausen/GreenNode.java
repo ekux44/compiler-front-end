@@ -6,6 +6,7 @@ public class GreenNode implements Node {
 
   private String mName;
   private ArrayList<Node> mChildren = new ArrayList<Node>();
+  public int scopeOffset;
 
   @Override
   public String getName() {
