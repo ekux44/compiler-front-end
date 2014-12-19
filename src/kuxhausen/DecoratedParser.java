@@ -225,11 +225,11 @@ public class DecoratedParser {
               match(TokType.RESWRD, ResWordAttr.PROGRAM);
               match(TokType.ID, null);
               Token id = mConsumed;
+              checkAddGreen(id.lexeme);
               match(TokType.OPENPAREN, null);
               identifierList();
               match(TokType.CLOSEPAREN, null);
               match(TokType.SEMICOLON, null);
-              checkAddGreen(id.lexeme);
               programTail();
               return;
           }
@@ -662,8 +662,8 @@ public class DecoratedParser {
               match(TokType.RESWRD, ResWordAttr.PROC);
               match(TokType.ID, null);
               Token id = mConsumed;
-              subprogramHeadTail();
               checkAddGreen(id.lexeme);
+              subprogramHeadTail();
               return;
           }
           break;
