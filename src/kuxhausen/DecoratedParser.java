@@ -121,6 +121,7 @@ public class DecoratedParser {
       // go ahead and add node anyway with modified name so that subtree can be typechecked
       green.setName(green.getName() + "#");
     }
+    mScope.getFirst().getChildren().add(green);
     mScope.addFirst(green);
   }
 
