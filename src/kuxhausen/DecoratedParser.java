@@ -996,15 +996,48 @@ public class DecoratedParser {
     }
   }
 
-  void variable() {
+  PasType variable() {
     mSet = new Token[] {pair(TokType.ASSIGNOP, null)};
 
     try {
       switch (mT.type) {
         case ID:
           match(TokType.ID, null);
-          variableTail();
-          return;
+          Token id = mConsumed;
+          PasType idT = checkBlue(id.lexeme);
+          PasType varT = variableTail();
+
+          if (idT == PasType.ERR || varT == PasType.ERR)
+            return PasType.ERR;
+          else if (varT == PasType.INT) {
+            switch (idT) {
+              case AINT:
+                return PasType.INT;
+              case PPAINT:
+                return PasType.INT;
+              case AREAL:
+                return PasType.REAL;
+              case PPAREAL:
+                return PasType.REAL;
+              default:
+                return reportErrStar("Array type expected, " + idT.toString() + " recieved");
+            }
+          } else if (varT == PasType.NULL) {
+            switch (idT) {
+              case INT:
+                return PasType.INT;
+              case PPINT:
+                return PasType.INT;
+              case REAL:
+                return PasType.REAL;
+              case PPREAL:
+                return PasType.REAL;
+              default:
+                return reportErrStar("Numeric type expected, " + idT.toString() + " recieved");
+            }
+          } else {
+            return reportErrStar("Invalid array index type, " + idT.toString() + " recieved");
+          }
       }
 
       Token[] toks = {pair(TokType.ID, null)};
@@ -1014,20 +1047,21 @@ public class DecoratedParser {
     } catch (SyntaxErr e) {
       sync();
     }
+    return PasType.ERR;
   }
 
-  void variableTail() {
+  PasType variableTail() {
     mSet = new Token[] {pair(TokType.ASSIGNOP, null)};
 
     try {
       switch (mT.type) {
         case OPENBRACKET:
           match(TokType.OPENBRACKET, null);
-          expression();
+          PasType exp = expression();
           match(TokType.CLOSEBRACKET, null);
-          return;
+          return exp;
         case ASSIGNOP:
-          return;
+          return PasType.NULL;
       }
 
       Token[] toks = {pair(TokType.OPENBRACKET, null), pair(TokType.ASSIGNOP, null)};
@@ -1037,6 +1071,8 @@ public class DecoratedParser {
     } catch (SyntaxErr e) {
       sync();
     }
+
+    return PasType.ERR;
   }
 
   void procedureStatment() {
@@ -1182,7 +1218,7 @@ public class DecoratedParser {
     /*
      * Unreachable } catch (ParErr e) { sync(); }
      */
-    
+
     return 0;
   }
 
