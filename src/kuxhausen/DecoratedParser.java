@@ -55,21 +55,21 @@ public class DecoratedParser {
     return mTokens;
   }
 
-  private class ParErr extends Exception {
+  private class SyntaxErr extends Exception {
   }
 
   Token pair(TokType type, Enum attr) {
     return new Token(type, (attr != null) ? attr.ordinal() : -1, null, null);
   }
 
-  public void match(TokType type, Enum attr) throws ParErr {
+  public void match(TokType type, Enum attr) throws SyntaxErr {
     Token desired = pair(type, attr);
     if (mT.fullTypeMatch(desired)) {
       consumeToken();
     } else {
       Token[] toks = {pair(type, attr)};
       wanted(toks);
-      throw new ParErr();
+      throw new SyntaxErr();
     }
   }
 
@@ -202,7 +202,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -237,7 +237,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -267,7 +267,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -287,7 +287,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -310,7 +310,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -341,7 +341,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -377,7 +377,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -415,7 +415,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -442,7 +442,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -467,7 +467,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -495,7 +495,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -607,7 +607,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -632,7 +632,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -653,7 +653,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -675,7 +675,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -700,7 +700,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -724,7 +724,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -770,7 +770,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -878,7 +878,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -927,7 +927,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -959,7 +959,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -979,7 +979,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -1002,7 +1002,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -1029,7 +1029,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -1064,7 +1064,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -1138,7 +1138,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
@@ -1227,9 +1227,9 @@ public class DecoratedParser {
           match(TokType.RELOP, null);
           Token relop = mConsumed;
           PasType se = simpleExpression();
-          
-          
-          
+
+
+
           if (i == PasType.ERR || se == PasType.ERR)
             return PasType.ERR;
           else if (i == PasType.BOOL && relop.getRelop() == RelopAttr.EQ && se == PasType.BOOL)
@@ -1241,9 +1241,8 @@ public class DecoratedParser {
           else if (i == PasType.REAL && se == PasType.REAL)
             return PasType.REAL;
           else
-            return
-                reportErrStar("type error" + i.toString() + " " + relop.getAttribute() + " "
-                    + se.toString() + " cannot be used together");
+            return reportErrStar("type error" + i.toString() + " " + relop.getAttribute() + " "
+                + se.toString() + " cannot be used together");
       }
 
       Token[] toks =
@@ -1255,10 +1254,10 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
-    
+
     return PasType.ERR;
   }
 
@@ -1384,7 +1383,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
 
@@ -1496,7 +1495,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
 
@@ -1579,10 +1578,10 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
-    
+
     return PasType.ERR;
   }
 
@@ -1639,10 +1638,10 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
-    
+
     return PasType.ERR;
   }
 
@@ -1669,7 +1668,7 @@ public class DecoratedParser {
       wanted(toks);
       sync();
 
-    } catch (ParErr e) {
+    } catch (SyntaxErr e) {
       sync();
     }
   }
