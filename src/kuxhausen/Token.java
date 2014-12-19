@@ -5,20 +5,20 @@ package kuxhausen;
  */
 public class Token implements Cloneable {
 
-  public Type type;
+  public TokType type;
   public Object attribute;
   public String lexeme;
   public SourcePointer position;
 
-  public Token(Type t, int attr, String lex, SourcePointer pos) {
+  public Token(TokType t, int attr, String lex, SourcePointer pos) {
     this(t, (Object) attr, lex, pos);
   }
 
-  public Token(Type t, String attr, String lex, SourcePointer pos) {
+  public Token(TokType t, String attr, String lex, SourcePointer pos) {
     this(t, (Object) attr, lex, pos);
   }
 
-  private Token(Type t, Object attr, String lex, SourcePointer pos) {
+  private Token(TokType t, Object attr, String lex, SourcePointer pos) {
     type = t;
     attribute = attr;
     lexeme = lex;
@@ -52,7 +52,7 @@ public class Token implements Cloneable {
   public boolean fullTypeMatch(Token other) {
     if (type == other.type) {
       // if one of these types, have to compare attributes as well
-      if (type == Type.RESWRD || type == Type.RELOP || type == Type.ADDOP || type == Type.MULOP) {
+      if (type == TokType.RESWRD || type == TokType.RELOP || type == TokType.ADDOP || type == TokType.MULOP) {
         //unless the attribute wasn't specified, in which case it's a wildcard
         if((int)attribute==-1 || (int)other.attribute==-1){
           return true;
@@ -67,7 +67,7 @@ public class Token implements Cloneable {
     return false;
   }
 
-  public static enum Type {
+  public static enum TokType {
     RESWRD, ID, EOF, NUM, RELOP, ADDOP, MULOP, LEXERR, SYNTAXERR, OPENPAREN, CLOSEPAREN, SEMICOLON, COMMA, COLON, OPENBRACKET, DOTDOT, CLOSEBRACKET, ASSIGNOP, $
   }
 

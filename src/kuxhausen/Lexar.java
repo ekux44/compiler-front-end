@@ -40,14 +40,14 @@ public class Lexar {
         String resType = wordFile.next();
         int attribute = wordFile.nextInt();
 
-        if (resType.equals(Type.ADDOP.toString())) {
-          reservedWordTable.put(lexeme, new Token(Type.ADDOP, attribute, lexeme, srcPos));
-        } else if (resType.equals(Type.MULOP.toString())) {
-          reservedWordTable.put(lexeme, new Token(Type.MULOP, attribute, lexeme, srcPos));
+        if (resType.equals(TokType.ADDOP.toString())) {
+          reservedWordTable.put(lexeme, new Token(TokType.ADDOP, attribute, lexeme, srcPos));
+        } else if (resType.equals(TokType.MULOP.toString())) {
+          reservedWordTable.put(lexeme, new Token(TokType.MULOP, attribute, lexeme, srcPos));
         } else {
           for (ResWordAttr tt : ResWordAttr.values()) {
             if (resType.equals(tt.toString())) {
-              reservedWordTable.put(lexeme, new Token(Type.RESWRD, tt.ordinal(), lexeme, srcPos));
+              reservedWordTable.put(lexeme, new Token(TokType.RESWRD, tt.ordinal(), lexeme, srcPos));
             }
           }
         }
@@ -175,10 +175,10 @@ public class Lexar {
       }
 
       if (candidate.length() > 10)
-        return new Token(Type.LEXERR, "Invalid ID: too long", candidate, srcPos);
+        return new Token(TokType.LEXERR, "Invalid ID: too long", candidate, srcPos);
 
       // Check add id to symbol table
-      Token t = new Token(Type.ID, candidate, candidate, srcPos);
+      Token t = new Token(TokType.ID, candidate, candidate, srcPos);
       if (!symbols.table.containsKey(candidate))
         symbols.table.put(candidate, t);
       return t;
@@ -205,17 +205,17 @@ public class Lexar {
       String lex = "" + source.advanceChar(srcPos);
       switch (lex) {
         case "=":
-          return new Token(Type.RELOP, RelopAttr.EQ.ordinal(), lex, srcPos);
+          return new Token(TokType.RELOP, RelopAttr.EQ.ordinal(), lex, srcPos);
         case "<":
           if (source.hasNext(srcPos)) {
             if (source.hasNext(srcPos) && source.peek(srcPos) == '>') {
               lex += source.advanceChar(srcPos);
-              return new Token(Type.RELOP, RelopAttr.NEQ.ordinal(), lex, srcPos);
+              return new Token(TokType.RELOP, RelopAttr.NEQ.ordinal(), lex, srcPos);
             } else if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
               lex += source.advanceChar(srcPos);
-              return new Token(Type.RELOP, RelopAttr.LTE.ordinal(), lex, srcPos);
+              return new Token(TokType.RELOP, RelopAttr.LTE.ordinal(), lex, srcPos);
             } else {
-              return new Token(Type.RELOP, RelopAttr.LT.ordinal(), lex, srcPos);
+              return new Token(TokType.RELOP, RelopAttr.LT.ordinal(), lex, srcPos);
             }
           }
           break;
@@ -223,9 +223,9 @@ public class Lexar {
           if (source.hasNext(srcPos)) {
             if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
               lex += source.advanceChar(srcPos);
-              return new Token(Type.RELOP, RelopAttr.GTE.ordinal(), lex, srcPos);
+              return new Token(TokType.RELOP, RelopAttr.GTE.ordinal(), lex, srcPos);
             } else {
-              return new Token(Type.RELOP, RelopAttr.GT.ordinal(), lex, srcPos);
+              return new Token(TokType.RELOP, RelopAttr.GT.ordinal(), lex, srcPos);
             }
           }
           break;
@@ -248,12 +248,12 @@ public class Lexar {
       }
 
       if (lex.startsWith("00"))
-        return new Token(Type.LEXERR, "Invalid INT: multiple leading zeros", lex, srcPos);
+        return new Token(TokType.LEXERR, "Invalid INT: multiple leading zeros", lex, srcPos);
       if (lex.length() > 10)
-        return new Token(Type.LEXERR, "Invalid INT: too long", lex, srcPos);
+        return new Token(TokType.LEXERR, "Invalid INT: too long", lex, srcPos);
 
 
-      return new Token(Type.NUM, lex, lex, srcPos);
+      return new Token(TokType.NUM, lex, lex, srcPos);
 
     }
 
@@ -305,22 +305,22 @@ public class Lexar {
 
     if (xCount > 0 && hasDot && yCount > 0) {
       if (lex.startsWith("00"))
-        return new Token(Type.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex, srcPos);
+        return new Token(TokType.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex, srcPos);
       if (xCount > 5)
-        return new Token(Type.LEXERR, "Invalid REAL: xx too long", lex, srcPos);
+        return new Token(TokType.LEXERR, "Invalid REAL: xx too long", lex, srcPos);
       if (yCount > 5)
-        return new Token(Type.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
+        return new Token(TokType.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
 
       if (hasExp && zCount > 0) {
         if (zCount > 2)
-          return new Token(Type.LEXERR, "Invalid REAL: zz too long", lex, srcPos);
+          return new Token(TokType.LEXERR, "Invalid REAL: zz too long", lex, srcPos);
         else if (lex.substring(lex.length() - zCount).startsWith("00"))
-          return new Token(Type.LEXERR, "Invalid REAL: multiple leading zeros in zz", lex, srcPos);
+          return new Token(TokType.LEXERR, "Invalid REAL: multiple leading zeros in zz", lex, srcPos);
         else
-          return new Token(Type.NUM, lex, lex, srcPos);
+          return new Token(TokType.NUM, lex, lex, srcPos);
       } else {
         srcPos = notLongBackup;
-        return new Token(Type.NUM, lex, lex, srcPos);
+        return new Token(TokType.NUM, lex, lex, srcPos);
       }
     }
 
@@ -336,43 +336,43 @@ public class Lexar {
 
     switch (lex) {
       case "(":
-        return new Token(Type.OPENPAREN, null, lex, srcPos);
+        return new Token(TokType.OPENPAREN, null, lex, srcPos);
       case ")":
-        return new Token(Type.CLOSEPAREN, null, lex, srcPos);
+        return new Token(TokType.CLOSEPAREN, null, lex, srcPos);
       case ";":
-        return new Token(Type.SEMICOLON, null, lex, srcPos);
+        return new Token(TokType.SEMICOLON, null, lex, srcPos);
       case ",":
-        return new Token(Type.COMMA, null, lex, srcPos);
+        return new Token(TokType.COMMA, null, lex, srcPos);
       case "[":
-        return new Token(Type.OPENBRACKET, null, lex, srcPos);
+        return new Token(TokType.OPENBRACKET, null, lex, srcPos);
       case "]":
-        return new Token(Type.CLOSEBRACKET, null, lex, srcPos);
+        return new Token(TokType.CLOSEBRACKET, null, lex, srcPos);
       case "+":
-        return new Token(Type.ADDOP, AddopAttr.PLUS.ordinal(), lex, srcPos);
+        return new Token(TokType.ADDOP, AddopAttr.PLUS.ordinal(), lex, srcPos);
       case "-":
-        return new Token(Type.ADDOP, AddopAttr.MINUS.ordinal(), lex, srcPos);
+        return new Token(TokType.ADDOP, AddopAttr.MINUS.ordinal(), lex, srcPos);
       case "*":
-        return new Token(Type.MULOP, MulopAttr.TIMES.ordinal(), lex, srcPos);
+        return new Token(TokType.MULOP, MulopAttr.TIMES.ordinal(), lex, srcPos);
       case "/":
-        return new Token(Type.MULOP, MulopAttr.SLASH.ordinal(), lex, srcPos);
+        return new Token(TokType.MULOP, MulopAttr.SLASH.ordinal(), lex, srcPos);
     }
 
     if (lex.equals(":")) {
       if (source.hasNext(srcPos) && source.peek(srcPos) == '=') {
         lex += source.advanceChar(srcPos);
-        return new Token(Type.ASSIGNOP, null, lex, srcPos);
+        return new Token(TokType.ASSIGNOP, null, lex, srcPos);
       } else
-        return new Token(Type.COLON, null, lex, srcPos);
+        return new Token(TokType.COLON, null, lex, srcPos);
     } else if (lex.equals(".")) {
       if (source.hasNext(srcPos) && source.peek(srcPos) == '.') {
         lex += source.advanceChar(srcPos);
-        return new Token(Type.DOTDOT, null, lex, srcPos);
+        return new Token(TokType.DOTDOT, null, lex, srcPos);
       } else {
-        return new Token(Type.EOF, null, lex, srcPos);
+        return new Token(TokType.EOF, null, lex, srcPos);
       }
     }
 
-    Token err = new Token(Type.LEXERR, "Unrecog Symbol", lex, srcPos);
+    Token err = new Token(TokType.LEXERR, "Unrecog Symbol", lex, srcPos);
     return err;
   }
 

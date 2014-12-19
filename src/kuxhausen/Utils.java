@@ -20,9 +20,9 @@ public class Utils {
         lineNo++;
         output.print(String.format("%-8s", "" + (lineNo + 1)) + source.getLine(lineNo));
       }
-      if (t.type == Type.LEXERR)
+      if (t.type == TokType.LEXERR)
         output.println("LEXERR: " + t.attribute);
-      if (t.type == Type.SYNTAXERR)
+      if (t.type == TokType.SYNTAXERR)
         output.println("SYNTAXERR: " + t.attribute);
     }
     output.close();
@@ -38,7 +38,7 @@ public class Utils {
     String formatting = "%-10s%-20s%-20s%-10s";
     output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
-      if (t.type != Type.$) {
+      if (t.type != TokType.$) {
         output.println(String.format(formatting, (t.position.lineNum + 1), t.lexeme,
             t.type.toString(), t.getAttribute()));
       }
