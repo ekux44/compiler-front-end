@@ -750,6 +750,7 @@ public class DecoratedParser {
               break;
           }
           checkAddBlue(id.lexeme, x);
+          parameterListTail();
           return;
       }
 
@@ -1278,11 +1279,12 @@ public class DecoratedParser {
         return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
       case NUM:
         PasType exp6 = expression();
-        if (getPPs(i.procName).size() >= i.paramNum)
+        if (getPPs(i.procName).size() <= i.paramNum) {
           reportErrStar("Unexpected procedure param of type" + exp6.toString());
-        else if (getPPs(i.procName).get(i.paramNum).getType() != exp6)
+        } else if (getPPs(i.procName).get(i.paramNum).getType() != exp6) {
           reportErrStar("Incorrect procedure param type: got " + exp6 + ", expected "
               + getPPs(i.procName).get(i.paramNum).getType());
+        }
         return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
     }
 
@@ -1310,11 +1312,12 @@ public class DecoratedParser {
         case COMMA:
           match(TokType.COMMA, null);
           PasType exp = expression();
-          if (getPPs(i.procName).size() >= i.paramNum)
+          if (getPPs(i.procName).size() <= i.paramNum) {
             reportErrStar("Unexpected procedure param of type" + exp.toString());
-          else if (getPPs(i.procName).get(i.paramNum).getType() != exp)
+          } else if (getPPs(i.procName).get(i.paramNum).getType() != exp) {
             reportErrStar("Incorrect procedure param type: got " + exp + ", expected "
                 + getPPs(i.procName).get(i.paramNum).getType());
+          }
           return expressionListTail(new PPPair(i.procName, i.paramNum + 1));
       }
 
@@ -1423,9 +1426,9 @@ public class DecoratedParser {
           else if (i == PasType.BOOL && relop.getRelop() == RelopAttr.NEQ && se == PasType.BOOL)
             return PasType.BOOL;
           else if (i == PasType.INT && se == PasType.INT)
-            return PasType.INT;
+            return PasType.BOOL;
           else if (i == PasType.REAL && se == PasType.REAL)
-            return PasType.REAL;
+            return PasType.BOOL;
           else
             return reportErrStar("type error" + i.toString() + " " + relop.getAttribute() + " "
                 + se.toString() + " cannot be used together");
