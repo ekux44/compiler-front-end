@@ -53,6 +53,10 @@ public class Token implements Cloneable {
     if (type == other.type) {
       // if one of these types, have to compare attributes as well
       if (type == Type.RESWRD || type == Type.RELOP || type == Type.ADDOP || type == Type.MULOP) {
+        //unless the attribute wasn't specified, in which case it's a wildcard
+        if((int)attribute==-1 || (int)other.attribute==-1){
+          return true;
+        }
         if (((int) attribute) == ((int) other.attribute)) {
           return true;
         }
