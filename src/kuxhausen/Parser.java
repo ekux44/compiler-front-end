@@ -1525,9 +1525,6 @@ public class Parser {
         case ADDOP:
           return;
         case MULOP:
-          match(TokType.MULOP, null);
-          factor();
-          termTail();
           return;
         case OPENBRACKET:
           match(TokType.OPENBRACKET, null);
