@@ -210,6 +210,10 @@ public class DecoratedParser {
     return PasType.ERR;
   }
 
+  public void computeOffset(Token id, TypeWidth tw) {
+    // TODO
+  }
+
   void program() {
     mSet = new Token[] {};
 
@@ -220,10 +224,12 @@ public class DecoratedParser {
             case PROGRAM:
               match(TokType.RESWRD, ResWordAttr.PROGRAM);
               match(TokType.ID, null);
+              Token id = mConsumed;
               match(TokType.OPENPAREN, null);
               identifierList();
               match(TokType.CLOSEPAREN, null);
               match(TokType.SEMICOLON, null);
+              checkAddGreen(id.lexeme);
               programTail();
               return;
           }
@@ -311,6 +317,8 @@ public class DecoratedParser {
       switch (mT.type) {
         case ID:
           match(TokType.ID, null);
+          Token id = mConsumed;
+          checkAddBlue(id.lexeme, PasType.PGPP);
           identifierListTail();
           return;
       }
@@ -334,6 +342,8 @@ public class DecoratedParser {
         case COMMA:
           match(TokType.COMMA, null);
           match(TokType.ID, null);
+          Token id = mConsumed;
+          checkAddBlue(id.lexeme, PasType.PGPP);
           identifierListTail();
           return;
       }
@@ -359,9 +369,12 @@ public class DecoratedParser {
             case VAR:
               match(TokType.RESWRD, ResWordAttr.VAR);
               match(TokType.ID, null);
+              Token id = mConsumed;
               match(TokType.COLON, null);
-              type();
+              TypeWidth type = type();
               match(TokType.SEMICOLON, null);
+              checkAddBlue(id.lexeme, type.type);
+              computeOffset(id, type);
               declarationsTail();
               return;
           }
@@ -390,9 +403,12 @@ public class DecoratedParser {
             case VAR:
               match(TokType.RESWRD, ResWordAttr.VAR);
               match(TokType.ID, null);
+              Token id = mConsumed;
               match(TokType.COLON, null);
-              type();
+              TypeWidth type = type();
               match(TokType.SEMICOLON, null);
+              checkAddBlue(id.lexeme, type.type);
+              computeOffset(id, type);
               declarationsTail();
               return;
             case PROC:
@@ -414,7 +430,7 @@ public class DecoratedParser {
     }
   }
 
-  PasType type() {
+  TypeWidth type() {
     mSet = new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.CLOSEPAREN, null)};
 
     try {
@@ -425,18 +441,29 @@ public class DecoratedParser {
               match(TokType.RESWRD, ResWordAttr.ARRAY);
               match(TokType.OPENBRACKET, null);
               match(TokType.NUM, null);
+              Token n1 = mConsumed;
+              PasType num1 = n1.getNumType();
               match(TokType.DOTDOT, null);
               match(TokType.NUM, null);
+              Token n2 = mConsumed;
+              PasType num2 = n2.getNumType();
               match(TokType.CLOSEBRACKET, null);
               match(TokType.RESWRD, ResWordAttr.OF);
-              standardType();
-              return;
+              PasType st = standardType();
+              if (num1 == PasType.INT && num2 == PasType.INT && st == PasType.INT) {
+                return new TypeWidth(PasType.AINT,
+                    4 * (1 + Integer.valueOf(n2.lexeme) - Integer.valueOf(n1.lexeme)));
+              } else if (num1 == PasType.INT && num2 == PasType.INT && st == PasType.REAL) {
+                return new TypeWidth(PasType.AREAL,
+                    4 * (1 + Integer.valueOf(n2.lexeme) - Integer.valueOf(n1.lexeme)));
+              }
+
             case INT_NAME:
               standardType();
-              return;
+              return new TypeWidth(PasType.INT, 4);
             case REAL_NAME:
               standardType();
-              return;
+              return new TypeWidth(PasType.REAL, 8);
           }
           break;
       }
@@ -450,9 +477,11 @@ public class DecoratedParser {
     } catch (SyntaxErr e) {
       sync();
     }
+
+    return new TypeWidth(PasType.ERR, 0);
   }
 
-  void standardType() {
+  PasType standardType() {
     mSet = new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.CLOSEPAREN, null)};
 
     try {
@@ -461,10 +490,10 @@ public class DecoratedParser {
           switch (ResWordAttr.values()[(int) mT.attribute]) {
             case INT_NAME:
               match(TokType.RESWRD, ResWordAttr.INT_NAME);
-              return;
+              return PasType.INT;
             case REAL_NAME:
               match(TokType.RESWRD, ResWordAttr.REAL_NAME);
-              return;
+              return PasType.REAL;
           }
           break;
       }
@@ -477,6 +506,8 @@ public class DecoratedParser {
     } catch (SyntaxErr e) {
       sync();
     }
+
+    return PasType.ERR;
   }
 
   void subprogramDeclarations() {
@@ -542,6 +573,7 @@ public class DecoratedParser {
           case PROC:
             subprogramHead();
             subprogramDeclarationTail();
+            exitScope();
             return;
         }
         break;
@@ -701,7 +733,7 @@ public class DecoratedParser {
           match(TokType.ID, null);
           Token id = mConsumed;
           match(TokType.COLON, null);
-          PasType type = type();
+          PasType type = type().type;
           PasType x = PasType.ERR;
           switch (type) {
             case INT:
@@ -742,7 +774,7 @@ public class DecoratedParser {
           match(TokType.ID, null);
           Token id = mConsumed;
           match(TokType.COLON, null);
-          PasType type = type();
+          PasType type = type().type;
           PasType x = PasType.ERR;
           switch (type) {
             case INT:
