@@ -59,6 +59,18 @@ public class Token implements Cloneable {
     return "NULL";
   }
 
+  public RelopAttr getRelop() {
+    return RelopAttr.values()[(int) attribute];
+  }
+
+  public MulopAttr getMulop() {
+    return MulopAttr.values()[(int) attribute];
+  }
+
+  public AddopAttr getAddop() {
+    return AddopAttr.values()[(int) attribute];
+  }
+
   public boolean fullTypeMatch(Token other) {
     if (type == other.type) {
       // if one of these types, have to compare attributes as well

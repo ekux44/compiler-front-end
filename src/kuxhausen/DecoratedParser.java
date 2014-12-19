@@ -1143,7 +1143,7 @@ public class DecoratedParser {
     }
   }
 
-  void expression() {
+  PasType expression() {
     mSet =
         new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
             pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
@@ -1155,35 +1155,29 @@ public class DecoratedParser {
       case RESWRD:
         switch (ResWordAttr.values()[(int) mT.attribute]) {
           case NOT:
-            simpleExpression();
-            expressionTail();
-            return;
+            PasType se1 = simpleExpression();
+            return expressionTail(se1);
         }
         break;
       case OPENPAREN:
-        simpleExpression();
-        expressionTail();
-        return;
+        PasType se2 = simpleExpression();
+        return expressionTail(se2);
       case ADDOP:
         switch (AddopAttr.values()[(int) mT.attribute]) {
           case PLUS:
-            simpleExpression();
-            expressionTail();
-            return;
+            PasType se3 = simpleExpression();
+            return expressionTail(se3);
           case MINUS:
-            simpleExpression();
-            expressionTail();
-            return;
+            PasType se4 = simpleExpression();
+            return expressionTail(se4);
         }
         break;
       case ID:
-        simpleExpression();
-        expressionTail();
-        return;
+        PasType se5 = simpleExpression();
+        return expressionTail(se5);
       case NUM:
-        simpleExpression();
-        expressionTail();
-        return;
+        PasType se6 = simpleExpression();
+        return expressionTail(se6);
     }
 
     Token[] toks =
@@ -1196,9 +1190,11 @@ public class DecoratedParser {
     /*
      * Unreachable } catch (ParErr e) { sync(); }
      */
+
+    return PasType.ERR;
   }
 
-  void expressionTail() {
+  PasType expressionTail(PasType i) {
     mSet =
         new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
             pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
@@ -1210,27 +1206,44 @@ public class DecoratedParser {
         case RESWRD:
           switch (ResWordAttr.values()[(int) mT.attribute]) {
             case END:
-              return;
+              return i;
             case THEN:
-              return;
+              return i;
             case ELSE:
-              return;
+              return i;
             case DO:
-              return;
+              return i;
           }
           break;
         case CLOSEPAREN:
-          return;
+          return i;
         case SEMICOLON:
-          return;
+          return i;
         case COMMA:
-          return;
+          return i;
         case CLOSEBRACKET:
-          return;
+          return i;
         case RELOP:
           match(TokType.RELOP, null);
-          simpleExpression();
-          return;
+          Token relop = mConsumed;
+          PasType se = simpleExpression();
+          
+          
+          
+          if (i == PasType.ERR || se == PasType.ERR)
+            return PasType.ERR;
+          else if (i == PasType.BOOL && relop.getRelop() == RelopAttr.EQ && se == PasType.BOOL)
+            return PasType.BOOL;
+          else if (i == PasType.BOOL && relop.getRelop() == RelopAttr.NEQ && se == PasType.BOOL)
+            return PasType.BOOL;
+          else if (i == PasType.INT && se == PasType.INT)
+            return PasType.INT;
+          else if (i == PasType.REAL && se == PasType.REAL)
+            return PasType.REAL;
+          else
+            return
+                reportErrStar("type error" + i.toString() + " " + relop.getAttribute() + " "
+                    + se.toString() + " cannot be used together");
       }
 
       Token[] toks =
@@ -1245,9 +1258,11 @@ public class DecoratedParser {
     } catch (ParErr e) {
       sync();
     }
+    
+    return PasType.ERR;
   }
 
-  void simpleExpression() {
+  PasType simpleExpression() {
     mSet =
         new Token[] {pair(TokType.RELOP, null), pair(TokType.SEMICOLON, null),
             pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.ELSE),
@@ -1259,37 +1274,39 @@ public class DecoratedParser {
       case RESWRD:
         switch (ResWordAttr.values()[(int) mT.attribute]) {
           case NOT:
-            term();
-            simpleExpressionTail();
-            return;
+            PasType term = term();
+            return simpleExpressionTail(term);
         }
         break;
       case OPENPAREN:
-        term();
-        simpleExpressionTail();
-        return;
+        PasType term1 = term();
+        return simpleExpressionTail(term1);
       case ADDOP:
         switch (AddopAttr.values()[(int) mT.attribute]) {
           case PLUS:
             sign();
-            term();
-            simpleExpressionTail();
-            return;
+            PasType term2 = term();
+            PasType set1 = simpleExpressionTail(term2);
+            if (set1 == PasType.BOOL)
+              return reportErrStar("Expected num after +,- but recieved BOOL");
+            else
+              return set1;
           case MINUS:
             sign();
-            term();
-            simpleExpressionTail();
-            return;
+            PasType term3 = term();
+            PasType set2 = simpleExpressionTail(term3);
+            if (set2 == PasType.BOOL)
+              return reportErrStar("Expected num after +,- but recieved BOOL");
+            else
+              return set2;
         }
         break;
       case ID:
-        term();
-        simpleExpressionTail();
-        return;
+        PasType term4 = term();
+        return simpleExpressionTail(term4);
       case NUM:
-        term();
-        simpleExpressionTail();
-        return;
+        PasType term5 = term();
+        return simpleExpressionTail(term5);
     }
 
     Token[] toks =
@@ -1302,9 +1319,11 @@ public class DecoratedParser {
     /*
      * Unreachable } catch (ParErr e) { sync(); }
      */
+
+    return PasType.ERR;
   }
 
-  void simpleExpressionTail() {
+  PasType simpleExpressionTail(PasType i) {
     mSet =
         new Token[] {pair(TokType.RELOP, null), pair(TokType.SEMICOLON, null),
             pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.ELSE),
@@ -1316,30 +1335,44 @@ public class DecoratedParser {
         case RESWRD:
           switch (ResWordAttr.values()[(int) mT.attribute]) {
             case END:
-              return;
+              return i;
             case THEN:
-              return;
+              return i;
             case ELSE:
-              return;
+              return i;
             case DO:
-              return;
+              return i;
           }
           break;
         case CLOSEPAREN:
-          return;
+          return i;
         case SEMICOLON:
-          return;
+          return i;
         case COMMA:
-          return;
+          return i;
         case CLOSEBRACKET:
-          return;
+          return i;
         case RELOP:
-          return;
+          return i;
         case ADDOP:
           match(TokType.ADDOP, null);
-          term();
-          simpleExpressionTail();
-          return;
+          Token addop = mConsumed;
+          PasType term = term();
+          PasType set1i;
+          if (i == PasType.ERR || term == PasType.ERR)
+            set1i = PasType.ERR;
+          else if (i == PasType.BOOL && addop.getAddop() == AddopAttr.OR && term == PasType.BOOL)
+            set1i = PasType.BOOL;
+          else if (i == PasType.INT && addop.getAddop() != AddopAttr.OR && term == PasType.INT)
+            set1i = PasType.INT;
+          else if (i == PasType.REAL && addop.getAddop() != AddopAttr.OR && term == PasType.REAL)
+            set1i = PasType.REAL;
+          else
+            set1i =
+                reportErrStar("type error" + i.toString() + " " + addop.getAttribute() + " "
+                    + term.toString() + " cannot be used together");
+
+          return simpleExpressionTail(set1i);
       }
 
       Token[] toks =
@@ -1354,6 +1387,8 @@ public class DecoratedParser {
     } catch (ParErr e) {
       sync();
     }
+
+    return PasType.ERR;
   }
 
   PasType term() {
@@ -1374,17 +1409,14 @@ public class DecoratedParser {
         }
         break;
       case OPENPAREN:
-        factor();
-        termTail();
-        return;
+        PasType fact1 = factor();
+        return termTail(fact1);
       case ID:
-        factor();
-        termTail();
-        return;
+        PasType fact2 = factor();
+        return termTail(fact2);
       case NUM:
-        factor();
-        termTail();
-        return;
+        PasType fact3 = factor();
+        return termTail(fact3);
     }
 
     Token[] toks =
@@ -1396,6 +1428,8 @@ public class DecoratedParser {
     /*
      * Unreachable } catch (ParErr e) { sync(); }
      */
+
+    return PasType.ERR;
   }
 
   PasType termTail(PasType i) {
@@ -1411,32 +1445,46 @@ public class DecoratedParser {
         case RESWRD:
           switch (ResWordAttr.values()[(int) mT.attribute]) {
             case END:
-              return;
+              return i;
             case THEN:
-              return;
+              return i;
             case ELSE:
-              return;
+              return i;
             case DO:
-              return;
+              return i;
           }
           break;
         case CLOSEPAREN:
-          return;
+          return i;
         case SEMICOLON:
-          return;
+          return i;
         case COMMA:
-          return;
+          return i;
         case CLOSEBRACKET:
-          return;
+          return i;
         case RELOP:
-          return;
+          return i;
         case ADDOP:
-          return;
+          return i;
         case MULOP:
           match(TokType.MULOP, null);
-          factor();
-          termTail();
-          return;
+          Token mulop = mConsumed;
+          PasType fact = factor();
+          PasType term1i;
+          if (i == PasType.ERR || fact == PasType.ERR)
+            term1i = PasType.ERR;
+          else if (i == PasType.BOOL && mulop.getMulop() == MulopAttr.AND && fact == PasType.BOOL)
+            term1i = PasType.BOOL;
+          else if (i == PasType.INT && mulop.getMulop() != MulopAttr.AND && fact == PasType.INT)
+            term1i = PasType.INT;
+          else if (i == PasType.REAL && mulop.getMulop() != MulopAttr.AND && fact == PasType.REAL)
+            term1i = PasType.REAL;
+          else
+            term1i =
+                reportErrStar("type error" + i.toString() + " " + mulop.getAttribute() + " "
+                    + fact.toString() + " cannot be used together");
+
+          return termTail(term1i);
       }
 
       Token[] toks =
@@ -1451,6 +1499,8 @@ public class DecoratedParser {
     } catch (ParErr e) {
       sync();
     }
+
+    return PasType.ERR;
   }
 
   PasType factor() {
@@ -1468,10 +1518,13 @@ public class DecoratedParser {
             case NOT:
               match(TokType.RESWRD, ResWordAttr.NOT);
               PasType fOne = factor();
-              switch(fOne){
-                case BOOL: return PasType.BOOL;
-                case ERR: return PasType.ERR;
-                default: return reportErrStar("Attempted to use nonBoolean type as Boolean");
+              switch (fOne) {
+                case BOOL:
+                  return PasType.BOOL;
+                case ERR:
+                  return PasType.ERR;
+                default:
+                  return reportErrStar("Attempted to use nonBoolean type as Boolean");
               }
           }
           break;
@@ -1529,6 +1582,8 @@ public class DecoratedParser {
     } catch (ParErr e) {
       sync();
     }
+    
+    return PasType.ERR;
   }
 
   PasType factorTail() {
@@ -1587,6 +1642,8 @@ public class DecoratedParser {
     } catch (ParErr e) {
       sync();
     }
+    
+    return PasType.ERR;
   }
 
   void sign() {
