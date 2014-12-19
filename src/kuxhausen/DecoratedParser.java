@@ -414,7 +414,7 @@ public class DecoratedParser {
     }
   }
 
-  void type() {
+  PasType type() {
     mSet = new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.CLOSEPAREN, null)};
 
     try {
@@ -629,7 +629,9 @@ public class DecoratedParser {
             case PROC:
               match(TokType.RESWRD, ResWordAttr.PROC);
               match(TokType.ID, null);
+              Token id = mConsumed;
               subprogramHeadTail();
+              checkAddGreen(id.lexeme);
               return;
           }
           break;
@@ -697,9 +699,25 @@ public class DecoratedParser {
       switch (mT.type) {
         case ID:
           match(TokType.ID, null);
+          Token id = mConsumed;
           match(TokType.COLON, null);
-          type();
-          parameterListTail();
+          PasType type = type();
+          PasType x = PasType.ERR;
+          switch (type) {
+            case INT:
+              x = PasType.PPINT;
+              break;
+            case REAL:
+              x = PasType.PPREAL;
+              break;
+            case AINT:
+              x = PasType.PPAINT;
+              break;
+            case AREAL:
+              x = PasType.PPAREAL;
+              break;
+          }
+          checkAddBlue(id.lexeme, x);
           return;
       }
 
@@ -722,9 +740,25 @@ public class DecoratedParser {
         case SEMICOLON:
           match(TokType.SEMICOLON, null);
           match(TokType.ID, null);
+          Token id = mConsumed;
           match(TokType.COLON, null);
-          type();
-          parameterListTail();
+          PasType type = type();
+          PasType x = PasType.ERR;
+          switch (type) {
+            case INT:
+              x = PasType.PPINT;
+              break;
+            case REAL:
+              x = PasType.PPREAL;
+              break;
+            case AINT:
+              x = PasType.PPAINT;
+              break;
+            case AREAL:
+              x = PasType.PPAREAL;
+              break;
+          }
+          checkAddBlue(id.lexeme, x);
           return;
       }
 
@@ -929,14 +963,18 @@ public class DecoratedParser {
               return;
             case IF:
               match(TokType.RESWRD, ResWordAttr.IF);
-              expression();
+              PasType exp1 = expression();
+              if (exp1 != PasType.BOOL)
+                reportErrStar("Type error: expected boolean expression, got " + exp1.toString());
               match(TokType.RESWRD, ResWordAttr.THEN);
               statement();
               statementTail();
               return;
             case WHILE:
               match(TokType.RESWRD, ResWordAttr.WHILE);
-              expression();
+              PasType exp2 = expression();
+              if (exp2 != PasType.BOOL)
+                reportErrStar("Type error: expected boolean expression, got " + exp2.toString());
               match(TokType.RESWRD, ResWordAttr.DO);
               statement();
               return;
@@ -946,9 +984,17 @@ public class DecoratedParser {
           }
           break;
         case ID:
-          variable();
+          PasType var = variable();
           match(TokType.ASSIGNOP, null);
-          expression();
+          PasType exp3 = expression();
+          if (var == PasType.ERR || exp3 == PasType.ERR)
+            return;
+          else if (var == PasType.INT && exp3 == PasType.INT)
+            return;
+          else if (var == PasType.REAL && exp3 == PasType.REAL)
+            return;
+          else
+            reportErrStar("Type error: cannot assign " + exp3 + " to a " + var);
           return;
       }
 
