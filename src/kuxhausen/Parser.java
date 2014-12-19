@@ -1,5 +1,6 @@
 package kuxhausen;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 import kuxhausen.Token.ResWordAttr;
@@ -25,6 +26,8 @@ public class Parser {
   private Token[] mSet;
 
   private ArrayList<Token> mTokens = new ArrayList<Token>();
+
+  private ArrayDeque<GreenNode> mScope = new ArrayDeque<GreenNode>();
 
   Parser(Lexar lex) {
     mL = lex;
@@ -92,6 +95,22 @@ public class Parser {
         return true;
     }
     return false;
+  }
+
+  public void checkAddGreen(String name) {
+    // TODO
+  }
+
+  public void checkAddBlue(String name, PasType type) {
+    // TODO
+  }
+
+  public void checkGreen(String name) {
+    // TODO
+  }
+
+  public void checkBlue(String name) {
+    // TODO
   }
 
   void program() {
@@ -178,7 +197,8 @@ public class Parser {
           break;
       }
 
-      Token[] toks = {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
+      Token[] toks =
+          {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
       wanted(toks);
       sync();
 
@@ -231,7 +251,9 @@ public class Parser {
   }
 
   void declarations() {
-    mSet = new Token[] {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
+    mSet =
+        new Token[] {pair(TokType.RESWRD, ResWordAttr.PROC),
+            pair(TokType.RESWRD, ResWordAttr.BEGIN)};
 
     try {
       switch (mT.type) {
@@ -260,7 +282,9 @@ public class Parser {
   }
 
   void declarationsTail() {
-    mSet = new Token[] {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
+    mSet =
+        new Token[] {pair(TokType.RESWRD, ResWordAttr.PROC),
+            pair(TokType.RESWRD, ResWordAttr.BEGIN)};
 
     try {
       switch (mT.type) {
@@ -401,7 +425,8 @@ public class Parser {
           break;
       }
 
-      Token[] toks = {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
+      Token[] toks =
+          {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
       wanted(toks);
       sync();
 
@@ -485,7 +510,8 @@ public class Parser {
         break;
     }
 
-    Token[] toks = {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
+    Token[] toks =
+        {pair(TokType.RESWRD, ResWordAttr.PROC), pair(TokType.RESWRD, ResWordAttr.BEGIN)};
     wanted(toks);
     sync();
 
@@ -1056,7 +1082,8 @@ public class Parser {
     mSet =
         new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
             pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
-            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null), pair(TokType.CLOSEPAREN, null)};
+            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null),
+            pair(TokType.CLOSEPAREN, null)};
 
     // try {
     switch (mT.type) {
@@ -1110,7 +1137,8 @@ public class Parser {
     mSet =
         new Token[] {pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
             pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
-            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null), pair(TokType.CLOSEPAREN, null)};
+            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null),
+            pair(TokType.CLOSEPAREN, null)};
 
     try {
       switch (mT.type) {
@@ -1143,8 +1171,9 @@ public class Parser {
       Token[] toks =
           {pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.THEN),
               pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.DO),
-              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null), pair(TokType.COMMA, null),
-              pair(TokType.CLOSEBRACKET, null), pair(TokType.RELOP, null)};
+              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null),
+              pair(TokType.COMMA, null), pair(TokType.CLOSEBRACKET, null),
+              pair(TokType.RELOP, null)};
       wanted(toks);
       sync();
 
@@ -1251,8 +1280,9 @@ public class Parser {
       Token[] toks =
           {pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.THEN),
               pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.DO),
-              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null), pair(TokType.COMMA, null),
-              pair(TokType.CLOSEBRACKET, null), pair(TokType.RELOP, null), pair(TokType.ADDOP, null)};
+              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null),
+              pair(TokType.COMMA, null), pair(TokType.CLOSEBRACKET, null),
+              pair(TokType.RELOP, null), pair(TokType.ADDOP, null)};
       wanted(toks);
       sync();
 
@@ -1263,10 +1293,11 @@ public class Parser {
 
   void term() {
     mSet =
-        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null), pair(TokType.SEMICOLON, null),
-            pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.ELSE),
-            pair(TokType.RESWRD, ResWordAttr.THEN), pair(TokType.CLOSEBRACKET, null),
-            pair(TokType.COMMA, null), pair(TokType.CLOSEPAREN, null)};
+        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
+            pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
+            pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
+            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null),
+            pair(TokType.CLOSEPAREN, null)};
 
     // try {
     switch (mT.type) {
@@ -1293,8 +1324,8 @@ public class Parser {
     }
 
     Token[] toks =
-        {pair(TokType.RESWRD, ResWordAttr.NOT), pair(TokType.OPENPAREN, null), pair(TokType.ID, null),
-            pair(TokType.NUM, null)};
+        {pair(TokType.RESWRD, ResWordAttr.NOT), pair(TokType.OPENPAREN, null),
+            pair(TokType.ID, null), pair(TokType.NUM, null)};
     wanted(toks);
     sync();
 
@@ -1305,10 +1336,11 @@ public class Parser {
 
   void termTail() {
     mSet =
-        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null), pair(TokType.SEMICOLON, null),
-            pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.ELSE),
-            pair(TokType.RESWRD, ResWordAttr.THEN), pair(TokType.CLOSEBRACKET, null),
-            pair(TokType.COMMA, null), pair(TokType.CLOSEPAREN, null)};
+        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
+            pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
+            pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
+            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null),
+            pair(TokType.CLOSEPAREN, null)};
 
     try {
       switch (mT.type) {
@@ -1346,9 +1378,9 @@ public class Parser {
       Token[] toks =
           {pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.THEN),
               pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.DO),
-              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null), pair(TokType.COMMA, null),
-              pair(TokType.CLOSEBRACKET, null), pair(TokType.RELOP, null), pair(TokType.ADDOP, null),
-              pair(TokType.MULOP, null)};
+              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null),
+              pair(TokType.COMMA, null), pair(TokType.CLOSEBRACKET, null),
+              pair(TokType.RELOP, null), pair(TokType.ADDOP, null), pair(TokType.MULOP, null)};
       wanted(toks);
       sync();
 
@@ -1359,10 +1391,11 @@ public class Parser {
 
   void factor() {
     mSet =
-        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null), pair(TokType.SEMICOLON, null),
-            pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.ELSE),
-            pair(TokType.RESWRD, ResWordAttr.THEN), pair(TokType.CLOSEBRACKET, null),
-            pair(TokType.COMMA, null), pair(TokType.CLOSEPAREN, null), pair(TokType.MULOP, null)};
+        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
+            pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
+            pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
+            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null),
+            pair(TokType.CLOSEPAREN, null), pair(TokType.MULOP, null)};
 
     try {
       switch (mT.type) {
@@ -1389,8 +1422,8 @@ public class Parser {
       }
 
       Token[] toks =
-          {pair(TokType.RESWRD, ResWordAttr.NOT), pair(TokType.OPENPAREN, null), pair(TokType.ID, null),
-              pair(TokType.NUM, null)};
+          {pair(TokType.RESWRD, ResWordAttr.NOT), pair(TokType.OPENPAREN, null),
+              pair(TokType.ID, null), pair(TokType.NUM, null)};
       wanted(toks);
       sync();
 
@@ -1401,10 +1434,11 @@ public class Parser {
 
   void factorTail() {
     mSet =
-        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null), pair(TokType.SEMICOLON, null),
-            pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.ELSE),
-            pair(TokType.RESWRD, ResWordAttr.THEN), pair(TokType.CLOSEBRACKET, null),
-            pair(TokType.COMMA, null), pair(TokType.CLOSEPAREN, null), pair(TokType.MULOP, null)};
+        new Token[] {pair(TokType.ADDOP, null), pair(TokType.RELOP, null),
+            pair(TokType.SEMICOLON, null), pair(TokType.RESWRD, ResWordAttr.END),
+            pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.THEN),
+            pair(TokType.CLOSEBRACKET, null), pair(TokType.COMMA, null),
+            pair(TokType.CLOSEPAREN, null), pair(TokType.MULOP, null)};
 
     try {
       switch (mT.type) {
@@ -1447,9 +1481,10 @@ public class Parser {
       Token[] toks =
           {pair(TokType.RESWRD, ResWordAttr.END), pair(TokType.RESWRD, ResWordAttr.THEN),
               pair(TokType.RESWRD, ResWordAttr.ELSE), pair(TokType.RESWRD, ResWordAttr.DO),
-              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null), pair(TokType.COMMA, null),
-              pair(TokType.CLOSEBRACKET, null), pair(TokType.RELOP, null), pair(TokType.ADDOP, null),
-              pair(TokType.MULOP, null), pair(TokType.OPENBRACKET, null)};
+              pair(TokType.CLOSEPAREN, null), pair(TokType.SEMICOLON, null),
+              pair(TokType.COMMA, null), pair(TokType.CLOSEBRACKET, null),
+              pair(TokType.RELOP, null), pair(TokType.ADDOP, null), pair(TokType.MULOP, null),
+              pair(TokType.OPENBRACKET, null)};
       wanted(toks);
       sync();
 
@@ -1460,8 +1495,8 @@ public class Parser {
 
   void sign() {
     mSet =
-        new Token[] {pair(TokType.ID, null), pair(TokType.NUM, null), pair(TokType.OPENPAREN, null),
-            pair(TokType.RESWRD, ResWordAttr.NOT)};
+        new Token[] {pair(TokType.ID, null), pair(TokType.NUM, null),
+            pair(TokType.OPENPAREN, null), pair(TokType.RESWRD, ResWordAttr.NOT)};
 
     try {
       switch (mT.type) {
