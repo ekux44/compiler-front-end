@@ -24,6 +24,8 @@ public class Utils {
         output.println("LEXERR: " + t.attribute);
       if (t.type == TokType.SYNTAXERR)
         output.println("SYNTAXERR: " + t.attribute);
+      if (t.type == TokType.SEMANTICERR)
+        output.println("SYNTAXERR: " + t.attribute);
     }
     output.close();
   }
