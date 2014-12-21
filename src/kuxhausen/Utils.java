@@ -25,7 +25,7 @@ public class Utils {
       if (t.type == TokType.SYNTAXERR)
         output.println("SYNTAXERR: " + t.attribute);
       if (t.type == TokType.SEMANTICERR)
-        output.println("SYNTAXERR: " + t.attribute);
+        output.println("SEMANTICERR: " + t.attribute);
     }
     output.close();
   }
