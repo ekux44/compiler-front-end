@@ -133,7 +133,6 @@ public class DecoratedParser {
     }
     mScope.getFirst().getChildren().add(green);
     mScope.addFirst(green);
-    output.println("  NEW SCOPE: " + green.getName());
   }
 
   public void checkAddBlue(String name, PasType type) {
@@ -214,7 +213,6 @@ public class DecoratedParser {
 
   public void exitScope() {
     mScope.removeFirst();
-    output.println("  END SCOPE");
   }
 
   public PasType reportErrStar(String msg) {
@@ -224,6 +222,8 @@ public class DecoratedParser {
   }
 
   public void computeOffset(Token id, TypeWidth tw) {
+    for (int i = 1; i < mScope.size(); i++)
+      output.print("   "); // add indentations proportional to scope nesting
     output.println(mScope.getFirst().scopeOffset + "  " + id.lexeme + "  " + tw.type.toString());
     mScope.getFirst().scopeOffset += tw.width;
   }
