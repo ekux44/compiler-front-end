@@ -1742,6 +1742,14 @@ public class DecoratedParser {
                 return PasType.REAL;
               case PPREAL:
                 return PasType.REAL;
+              case AINT:
+                return PasType.AINT;
+              case PPAINT:
+                return PasType.AINT;
+              case AREAL:
+                return PasType.AREAL;
+              case PPAREAL:
+                return PasType.AREAL;
               default:
                 return reportErrStar("Numeric type expected, " + idType.toString() + " recieved");
             }
