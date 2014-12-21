@@ -65,9 +65,9 @@ public class Lexar {
   public Token getNextToken() {
     Token result = null;
 
+    whitespaceMachine();
     result = reservedWordsMachine();
     if (result == null) {
-      whitespaceMachine();
       result = eofMachine();
     }
     if (result == null) {

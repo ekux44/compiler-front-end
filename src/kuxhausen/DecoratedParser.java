@@ -55,8 +55,8 @@ public class DecoratedParser {
   private void consumeToken() {
     if (mT != null && mT.type == TokType.$)
       return;
+    mConsumed = mT;
     Token next = mL.getNextToken();
-
     mT = next;
     mTokens.add(next);
     mLine = next.position;
