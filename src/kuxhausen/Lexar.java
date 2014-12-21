@@ -351,6 +351,8 @@ public class Lexar {
       if (hasExp && zz.length() > 0) {
         if (zz.length() > 2)
           return new Token(TokType.LEXERR, "Invalid REAL: zz too long", lex, srcPos);
+        else if (hasLeadingZeros(zz))
+          return new Token(TokType.LEXERR, "Invalid REAL: leading zeros in zz", lex, srcPos);
         else
           return new Token(TokType.NUM, lex, lex, srcPos);
       } else {
