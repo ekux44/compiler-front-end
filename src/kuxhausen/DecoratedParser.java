@@ -808,6 +808,7 @@ public class DecoratedParser {
               break;
           }
           checkAddBlue(id.lexeme, x);
+          parameterListTail();
           return;
       }
 
