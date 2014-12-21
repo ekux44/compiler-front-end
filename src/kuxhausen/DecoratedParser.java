@@ -138,11 +138,9 @@ public class DecoratedParser {
 
   public void checkAddBlue(String name, PasType type) {
     boolean hasConflict = false;
-    for (GreenNode g : mScope) {
-      for (Node n : g.getChildren()) {
-        if (n instanceof BlueNode && n.getName().equals(name)) {
-          hasConflict = true;
-        }
+    for (Node n : mScope.getFirst().getChildren()) {
+      if (n instanceof BlueNode && n.getName().equals(name)) {
+        hasConflict = true;
       }
     }
     if (hasConflict) {
