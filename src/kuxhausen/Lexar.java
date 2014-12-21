@@ -155,32 +155,32 @@ public class Lexar {
       hasConsumedWhitespace = true;
     }
 
-    if (hasConsumedWhitespace) {
-      String candidate = "";
+    // if (hasConsumedWhitespace) {
+    String candidate = "";
 
-      // next consume one letter
-      if (source.hasNext(srcPos) && isLetter(source.peek(srcPos))) {
+    // next consume one letter
+    if (source.hasNext(srcPos) && isLetter(source.peek(srcPos))) {
+      candidate += source.advanceChar(srcPos);
+
+      // next consume any following letters or digits
+      while (source.hasNext(srcPos)
+          && (isLetter(source.peek(srcPos)) || isDigit(source.peek(srcPos)))) {
         candidate += source.advanceChar(srcPos);
-
-        // next consume any following letters or digits
-        while (source.hasNext(srcPos)
-            && (isLetter(source.peek(srcPos)) || isDigit(source.peek(srcPos)))) {
-          candidate += source.advanceChar(srcPos);
-        }
-
-        // if candidate is followed by whitespace or EOF
-        if (source.hasNext(srcPos)
-            && (isWhiteSpace(source.peek(srcPos)) || isEOF(source.peek(srcPos)))) {
-
-          // check reserved word table
-          if (reservedWordTable.containsKey(candidate)) {
-            Token result = reservedWordTable.get(candidate).clone();
-            result.position = srcPos.clone();
-            return result;
-          }
-        }
       }
+
+      // if candidate is followed by whitespace or EOF
+      // if (source.hasNext(srcPos)
+      // && (isWhiteSpace(source.peek(srcPos)) || isEOF(source.peek(srcPos)))) {
+
+      // check reserved word table
+      if (reservedWordTable.containsKey(candidate)) {
+        Token result = reservedWordTable.get(candidate).clone();
+        result.position = srcPos.clone();
+        return result;
+      }
+      // }
     }
+    // }
 
     // if no token matched, revert source pointer and return null
     srcPos = backup;
