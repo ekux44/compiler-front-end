@@ -24,7 +24,7 @@ public class Lexar {
 
     while (file.hasNextLine()) {
       // Read source into buffer
-      // Per project spec, only consider upto 71 characters per line including \n
+      // Per project spec, only consider upto 72 characters per line including \n
       String line = file.nextLine();
       source.addLine(line.substring(0, Math.min(71, line.length())) + "\n");
     }
@@ -68,8 +68,9 @@ public class Lexar {
     result = reservedWordsMachine();
     if (result == null) {
       whitespaceMachine();
-      if (!source.hasNext(srcPos)) // check there is more after removing whitespace
-        return result;
+      result = eofMachine();
+    }
+    if (result == null) {
       result = idMachine();
     }
     if (result == null) {
@@ -223,6 +224,13 @@ public class Lexar {
     while (source.hasNext(srcPos) && isWhiteSpace(source.peek(srcPos))) {
       source.advanceChar(srcPos);
     }
+  }
+
+  private Token eofMachine() {
+    if (source.hasNext(srcPos))
+      return null;
+    else
+      return new Token(TokType.$, null, "$", srcPos);
   }
 
   private Token relopMachine() {
@@ -396,7 +404,7 @@ public class Lexar {
         lex += source.advanceChar(srcPos);
         return new Token(TokType.DOTDOT, null, lex, srcPos);
       } else {
-        return new Token(TokType.EOF, null, lex, srcPos);
+        return new Token(TokType.DOT, null, lex, srcPos);
       }
     }
 

@@ -35,7 +35,7 @@ public class DecoratedParser {
     invisibleRoot.setName("");
     mScope.add(invisibleRoot);
   }
-  
+
   private PrintWriter output;
 
   DecoratedParser(Lexar lex, String loc) {
@@ -43,22 +43,20 @@ public class DecoratedParser {
       output = new PrintWriter(loc);
     } catch (FileNotFoundException e) {
     }
-    
+
     mL = lex;
     consumeToken();
     program();
     exitScope();
-    
+
     output.close();
   }
 
   private void consumeToken() {
-    mConsumed = mT;
+    if (mT != null && mT.type == TokType.$)
+      return;
     Token next = mL.getNextToken();
 
-    if (next == null) {
-      next = new Token(TokType.$, null, null, mLine);
-    }
     mT = next;
     mTokens.add(next);
     mLine = next.position;
@@ -135,7 +133,7 @@ public class DecoratedParser {
     }
     mScope.getFirst().getChildren().add(green);
     mScope.addFirst(green);
-    output.println("  NEW SCOPE: "+green.getName());
+    output.println("  NEW SCOPE: " + green.getName());
   }
 
   public void checkAddBlue(String name, PasType type) {
@@ -228,8 +226,8 @@ public class DecoratedParser {
   }
 
   public void computeOffset(Token id, TypeWidth tw) {
-    output.println(mScope.getFirst().scopeOffset+"  "+id.lexeme+"  "+tw.type.toString());
-    mScope.getFirst().scopeOffset +=tw.width;
+    output.println(mScope.getFirst().scopeOffset + "  " + id.lexeme + "  " + tw.type.toString());
+    mScope.getFirst().scopeOffset += tw.width;
   }
 
   void program() {
@@ -277,11 +275,11 @@ public class DecoratedParser {
             case PROC:
               subprogramDeclarations();
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
             case BEGIN:
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
           }
           break;
@@ -308,11 +306,11 @@ public class DecoratedParser {
             case PROC:
               subprogramDeclarations();
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
             case BEGIN:
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
           }
           break;
@@ -823,7 +821,7 @@ public class DecoratedParser {
   }
 
   void compoundStatement() {
-    mSet = new Token[] {pair(TokType.EOF, null), pair(TokType.SEMICOLON, null)};
+    mSet = new Token[] {pair(TokType.DOT, null), pair(TokType.SEMICOLON, null)};
 
     try {
       switch (mT.type) {
@@ -847,7 +845,7 @@ public class DecoratedParser {
   }
 
   void compoundStatementTail() {
-    mSet = new Token[] {pair(TokType.EOF, null), pair(TokType.SEMICOLON, null)};
+    mSet = new Token[] {pair(TokType.DOT, null), pair(TokType.SEMICOLON, null)};
 
     try {
       switch (mT.type) {

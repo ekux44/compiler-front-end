@@ -16,7 +16,7 @@ public class Utils {
 
     int lineNo = -1;
     for (Token t : tokens) {
-      while (t.position.lineNum > lineNo) {
+      while (t.position.lineNum > lineNo && (lineNo + 2) <= source.getNumLines()) {
         lineNo++;
         output.print(String.format("%-8s", "" + (lineNo + 1)) + source.getLine(lineNo));
       }
@@ -40,10 +40,8 @@ public class Utils {
     String formatting = "%-9s%-17s%-13s%-10s";
     output.println(String.format(formatting, "Line No.", "Lexeme", "TOKEN-TYPE", "ATTRIBUTE"));
     for (Token t : tokens) {
-      if (t.type != TokType.$) {
-        output.println(String.format(formatting, (t.position.lineNum + 1), t.lexeme,
-            t.type.toString(), t.getAttribute()));
-      }
+      output.println(String.format(formatting, (t.position.lineNum + 1), t.lexeme,
+          t.type.toString(), t.getAttribute()));
     }
     output.close();
   }

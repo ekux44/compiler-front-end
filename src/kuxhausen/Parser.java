@@ -33,11 +33,10 @@ public class Parser {
   }
 
   private void consumeToken() {
+    if (mT != null && mT.type == TokType.$)
+      return;
     Token next = mL.getNextToken();
 
-    if (next == null) {
-      next = new Token(TokType.$, null, null, mLine);
-    }
     mT = next;
     mTokens.add(next);
     mLine = next.position;
@@ -137,11 +136,11 @@ public class Parser {
             case PROC:
               subprogramDeclarations();
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
             case BEGIN:
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
           }
           break;
@@ -168,11 +167,11 @@ public class Parser {
             case PROC:
               subprogramDeclarations();
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
             case BEGIN:
               compoundStatement();
-              match(TokType.EOF, null);
+              match(TokType.DOT, null);
               return;
           }
           break;
@@ -622,7 +621,7 @@ public class Parser {
   }
 
   void compoundStatement() {
-    mSet = new Token[] {pair(TokType.EOF, null), pair(TokType.SEMICOLON, null)};
+    mSet = new Token[] {pair(TokType.DOT, null), pair(TokType.SEMICOLON, null)};
 
     try {
       switch (mT.type) {
@@ -646,7 +645,7 @@ public class Parser {
   }
 
   void compoundStatementTail() {
-    mSet = new Token[] {pair(TokType.EOF, null), pair(TokType.SEMICOLON, null)};
+    mSet = new Token[] {pair(TokType.DOT, null), pair(TokType.SEMICOLON, null)};
 
     try {
       switch (mT.type) {

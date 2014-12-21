@@ -2,6 +2,8 @@ package kuxhausen;
 
 import java.util.Scanner;
 
+import kuxhausen.Token.TokType;
+
 /**
  * @author Eric Kuxhausen
  */
@@ -13,7 +15,7 @@ public class Project1 {
       if (file != null) {
         Lexar l = new Lexar(file);
         while (true) {
-          if (l.getNextToken() == null)
+          if (l.getNextToken().type == TokType.$)
             break;
         }
         Utils.writeListingFile("output/" + filename + ".listing", l.getTokenList(),
