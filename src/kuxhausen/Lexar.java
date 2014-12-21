@@ -47,7 +47,8 @@ public class Lexar {
         } else {
           for (ResWordAttr tt : ResWordAttr.values()) {
             if (resType.equals(tt.toString())) {
-              reservedWordTable.put(lexeme, new Token(TokType.RESWRD, tt.ordinal(), lexeme, srcPos));
+              reservedWordTable
+                  .put(lexeme, new Token(TokType.RESWRD, tt.ordinal(), lexeme, srcPos));
             }
           }
         }
@@ -111,6 +112,32 @@ public class Lexar {
 
   private boolean isEOF(char c) {
     return (c == '.');
+  }
+
+  /*
+   * returns false for 0 returns true for 0X, 00X, 0XX, ...
+   */
+  private boolean hasLeadingZeros(String s) {
+    if (s.length() <= 1) {
+      return false;
+    }
+    if (s.charAt(0) == '0') {
+      return true;
+    } else
+      return false;
+  }
+
+  /*
+   * returns false for 0 returns true for X0, X00, XX0, ...
+   */
+  private boolean hasTrailingZeros(String s) {
+    if (s.length() <= 1) {
+      return false;
+    }
+    if (s.charAt(s.length() - 1) == '0') {
+      return true;
+    } else
+      return false;
   }
 
   private Token reservedWordsMachine() {
@@ -247,8 +274,8 @@ public class Lexar {
         lex += source.advanceChar(srcPos);
       }
 
-      if (lex.startsWith("00"))
-        return new Token(TokType.LEXERR, "Invalid INT: multiple leading zeros", lex, srcPos);
+      if (hasLeadingZeros(lex))
+        return new Token(TokType.LEXERR, "Invalid INT: leading zeros", lex, srcPos);
       if (lex.length() > 10)
         return new Token(TokType.LEXERR, "Invalid INT: too long", lex, srcPos);
 
@@ -266,14 +293,14 @@ public class Lexar {
     SourcePointer backup = srcPos.clone();
 
     String lex = "";
-    int xCount = 0;
+    String xx = "";
     boolean hasDot = false;
-    int yCount = 0;
+    String yy = "";
     boolean hasExp = false;
-    int zCount = 0;
+    String zz = "";
 
     while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-      xCount++;
+      xx += source.peek(srcPos);
       lex += source.advanceChar(srcPos);
     }
 
@@ -282,7 +309,7 @@ public class Lexar {
       lex += source.advanceChar(srcPos);
 
       while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-        yCount++;
+        yy += source.peek(srcPos);
         lex += source.advanceChar(srcPos);
       }
     }
@@ -297,29 +324,30 @@ public class Lexar {
       }
 
       while (source.hasNext(srcPos) && isDigit(source.peek(srcPos))) {
-        zCount++;
+        zz += source.peek(srcPos);
         lex += source.advanceChar(srcPos);
       }
     }
 
 
-    if (xCount > 0 && hasDot && yCount > 0) {
-      if (lex.startsWith("00"))
-        return new Token(TokType.LEXERR, "Invalid REAL: multiple leading zeros in xx", lex, srcPos);
-      if (xCount > 5)
+    if (xx.length() > 0 && hasDot && yy.length() > 0) {
+      if (hasLeadingZeros(xx))
+        return new Token(TokType.LEXERR, "Invalid REAL: leading zeros in xx", lex, srcPos);
+      if (xx.length() > 5)
         return new Token(TokType.LEXERR, "Invalid REAL: xx too long", lex, srcPos);
-      if (yCount > 5)
+      if (hasTrailingZeros(yy))
+        return new Token(TokType.LEXERR, "Invalid REAL: trailing zeros in yy", lex, srcPos);
+      if (yy.length() > 5)
         return new Token(TokType.LEXERR, "Invalid REAL: yy too long", lex, srcPos);
 
-      if (hasExp && zCount > 0) {
-        if (zCount > 2)
+      if (hasExp && zz.length() > 0) {
+        if (zz.length() > 2)
           return new Token(TokType.LEXERR, "Invalid REAL: zz too long", lex, srcPos);
-        else if (lex.substring(lex.length() - zCount).startsWith("00"))
-          return new Token(TokType.LEXERR, "Invalid REAL: multiple leading zeros in zz", lex, srcPos);
         else
           return new Token(TokType.NUM, lex, lex, srcPos);
       } else {
         srcPos = notLongBackup;
+        lex = xx + "." + yy;
         return new Token(TokType.NUM, lex, lex, srcPos);
       }
     }
